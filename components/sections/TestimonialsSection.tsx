@@ -44,28 +44,28 @@ export function TestimonialsSection() {
     };
 
     return (
-        <section className="py-24 bg-[#FAFAFA] dark:bg-black overflow-hidden py-32">
+        <section className="py-28 bg-[#FAFAFA] overflow-hidden">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                <div className="flex justify-between items-end mb-16">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
                     <SectionHeader
                         title="Historias de Exploradores"
-                        subtitle="No nos creas a nosotros, cree en los viajeros que ya lo vivieron."
+                        subtitle="No nos creas a nosotros, cree en los viajeros curiosos que ya lo vivieron."
                         centered={false}
                     />
-                    <div className="hidden md:flex gap-4">
+                    <div className="hidden md:flex gap-4 pb-4">
                         <button
                             onClick={() => scroll('left')}
-                            className="w-12 h-12 rounded-full border border-gray-200 dark:border-zinc-800 flex items-center justify-center hover:bg-primary hover:text-black transition-colors bg-white dark:bg-zinc-900 shadow-sm"
+                            className="w-14 h-14 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors shadow-sm active:scale-95"
                             aria-label="Previous testimonials"
                         >
-                            <ChevronLeft />
+                            <ChevronLeft size={24} />
                         </button>
                         <button
                             onClick={() => scroll('right')}
-                            className="w-12 h-12 rounded-full border border-gray-200 dark:border-zinc-800 flex items-center justify-center hover:bg-primary hover:text-black transition-colors bg-white dark:bg-zinc-900 shadow-sm"
+                            className="w-14 h-14 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors shadow-sm active:scale-95"
                             aria-label="Next testimonials"
                         >
-                            <ChevronRight />
+                            <ChevronRight size={24} />
                         </button>
                     </div>
                 </div>
@@ -73,7 +73,7 @@ export function TestimonialsSection() {
                 {/* Horizontal Scroll Area */}
                 <div
                     ref={scrollRef}
-                    className="flex overflow-x-auto gap-8 pb-12 snap-x snap-mandatory hide-scroll-bar -mx-6 px-6 lg:mx-0 lg:px-0"
+                    className="flex overflow-x-auto gap-8 pb-16 snap-x snap-mandatory hide-scroll-bar -mx-6 px-6 lg:mx-0 lg:px-0"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                     {testimonials.map((test, index) => (

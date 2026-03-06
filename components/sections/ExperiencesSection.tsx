@@ -53,7 +53,7 @@ export function ExperiencesSection() {
     const filtered = activeCategory === 'Todas' ? experiences : experiences.filter(e => e.category === activeCategory);
 
     return (
-        <section id="experiencias" className="py-24 bg-white dark:bg-zinc-950">
+        <section id="experiencias" className="py-28 bg-[#fafafa]">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
                 <SectionHeader
                     title="Experiencias Destacadas"
@@ -61,12 +61,15 @@ export function ExperiencesSection() {
                 />
 
                 {/* Filter Tabs */}
-                <div className="flex flex-wrap justify-center gap-4 mb-16">
+                <div className="flex flex-wrap justify-center gap-3 mb-16">
                     {categories.map(cat => (
                         <button
                             key={cat}
                             onClick={() => setActiveCategory(cat)}
-                            className={`px-6 py-2 rounded-full font-sans font-medium text-sm transition-all duration-300 ${activeCategory === cat ? 'bg-black text-white dark:bg-white dark:text-black shadow-lg translate-y-0.5' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-zinc-900 dark:text-gray-300 dark:hover:bg-zinc-800'}`}
+                            className={`px-8 py-3 rounded-full font-sans font-bold text-sm transition-all duration-300 shadow-sm border ${activeCategory === cat
+                                    ? 'bg-gray-900 border-gray-900 text-white shadow-md -translate-y-1'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300'
+                                }`}
                         >
                             {cat}
                         </button>
@@ -74,7 +77,7 @@ export function ExperiencesSection() {
                 </div>
 
                 {/* Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     {filtered.map(exp => (
                         <ExperienceCard key={exp.id} {...exp} />
                     ))}

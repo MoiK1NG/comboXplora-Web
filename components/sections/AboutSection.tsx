@@ -1,66 +1,67 @@
 import React from 'react';
 import Image from 'next/image';
-import { SectionHeader } from '../ui/SectionHeader';
 
 export function AboutSection() {
     const stats = [
-        { value: "40+", label: "Hacedores Culturales" },
-        { value: "5", label: "Categorías Diferentes" },
-        { value: "100%", label: "Impacto Local" }
+        { value: "40+", label: "Hacedores Locales" },
+        { value: "100%", label: "Impacto Directo" },
+        { value: "5", label: "Tipos de Experiencia" }
     ];
 
     return (
-        <section id="nosotros" className="py-28 bg-[#FFFDF7] relative overflow-hidden">
+        <section id="nosotros" className="py-32 bg-[#FAFAFA] relative overflow-hidden">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
 
-                    {/* Visual Side */}
-                    <div className="relative order-2 lg:order-1">
-                        <div className="grid grid-cols-2 gap-5 h-[650px]">
-                            <div className="space-y-5">
-                                <div className="relative h-2/3 w-full rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white group">
-                                    <Image src="/images/experience_culture_1772730369365.png" alt="Cultura" fill className="object-cover group-hover:scale-110 transition-transform duration-1000" />
-                                </div>
-                                <div className="relative h-1/3 w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-black/5 bg-primary/10 flex items-center justify-center p-8">
-                                    <Image src="/logos/ComboXplora-04.png" alt="Logo" width={180} height={180} className="object-contain" />
-                                </div>
-                            </div>
-                            <div className="space-y-5 pt-16">
-                                <div className="relative h-1/4 w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-black/5 bg-accent/10 flex items-center justify-center font-outfit text-3xl font-black text-accent tracking-wide">
-                                    Auténtico
-                                </div>
-                                <div className="relative h-3/4 w-full rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white group">
-                                    <Image src="/images/experience_historia_1772729674439.png" alt="Historia" fill className="object-cover group-hover:scale-110 transition-transform duration-1000" />
-                                </div>
-                            </div>
+                    {/* Left: Asymmetric Editorial Gallery */}
+                    <div className="relative order-2 lg:order-1 h-[700px] w-full">
+                        {/* Soft backdrop shape */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] bg-primary/5 rounded-[4rem] -rotate-6" />
+
+                        {/* Large Image */}
+                        <div className="absolute top-0 left-0 w-[65%] h-[60%] rounded-[2.5rem] overflow-hidden shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border-[8px] border-white z-20">
+                            <Image src="/images/experience_historia_1772729674439.png" alt="Historia" fill className="object-cover hover:scale-105 transition-transform duration-[1.5s]" />
                         </div>
 
-                        {/* Decor blob */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 h-4/5 bg-primary/20 rounded-full filter blur-[120px] -z-10" />
+                        {/* Medium Image */}
+                        <div className="absolute bottom-10 right-0 w-[55%] h-[55%] rounded-[2.5rem] overflow-hidden shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border-[8px] border-white z-30">
+                            <Image src="/images/experience_gastronomy_1772729379901.png" alt="Gastronomía" fill className="object-cover hover:scale-105 transition-transform duration-[1.5s]" />
+                        </div>
+
+                        {/* Small Brand Card */}
+                        <div className="absolute top-[40%] left-[5%] w-[35%] aspect-square rounded-[2rem] bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] p-6 z-40 flex flex-col justify-center items-center text-center">
+                            <Image src="/logos/ComboXplora_Mesa de trabajo 1.png" alt="Logo" width={120} height={120} className="object-contain opacity-80" />
+                            <p className="font-outfit font-black text-sm text-gray-400 tracking-widest uppercase mt-4">Est. 2024</p>
+                        </div>
                     </div>
 
-                    {/* Text Side */}
-                    <div className="order-1 lg:order-2 pl-0 lg:pl-10">
-                        <SectionHeader
-                            title="Más que un tour, es vivir la ciudad"
-                            subtitle="ComboXplora no es turismo tradicional. Somos una plataforma impulsada por la comunidad para conectar a locales y visitantes con la esencia vibrante de Barranquilla."
-                            centered={false}
-                        />
+                    {/* Right: Editorial Typography */}
+                    <div className="order-1 lg:order-2">
+                        <h2 className="font-outfit text-5xl md:text-6xl font-black text-gray-900 mb-8 tracking-tight leading-[1.1] text-balance">
+                            Más que turismo, es <span className="text-accent italic font-serif font-medium">pertenencia.</span>
+                        </h2>
 
-                        <div className="space-y-8 font-sans text-gray-600 text-[1.15rem] leading-[1.8]">
+                        <div className="space-y-6 font-sans text-[1.15rem] leading-[1.8] text-gray-500">
                             <p>
-                                Creemos que la mejor manera de conocer un lugar es a través de las personas que crean su cultura todos los días. Artesanos, músicos, cocineras tradicionales y narradores locales son tus anfitriones.
+                                ComboXplora nace de la convicción de que la verdadera esencia de Barranquilla no está en monumentos vacíos, sino en las manos que amasan el millo y las voces que cantan al río.
                             </p>
                             <p>
-                                Al unirte a una experiencia ComboXplora, no solo apoyas la economía local, sino que contribuyes a la preservación del patrimonio cultural, escuchas historias reales y forjas conexiones genuinas.
+                                No somos una agencia tradicional. Somos una plataforma impulsada por la comunidad, diseñada para que te sumerjas en la ciudad real, apoyando directamente la economía de nuestros hacedores culturales.
                             </p>
                         </div>
 
-                        <div className="mt-16 grid grid-cols-3 gap-8 pt-10 border-t-2 border-gray-100">
+                        {/* Elegant Divider */}
+                        <div className="w-16 h-1 bg-gray-200 rounded-full my-12" />
+
+                        <div className="grid grid-cols-3 gap-8">
                             {stats.map((stat, i) => (
-                                <div key={i}>
-                                    <p className="font-outfit text-[2.75rem] font-black text-gray-900 mb-2">{stat.value}</p>
-                                    <p className="font-sans text-sm font-bold text-gray-500 uppercase tracking-widest">{stat.label}</p>
+                                <div key={i} className="flex flex-col">
+                                    <span className="font-outfit text-4xl md:text-[2.75rem] font-black text-gray-900 mb-2 leading-none">
+                                        {stat.value}
+                                    </span>
+                                    <span className="font-sans text-[0.75rem] font-bold text-gray-400 uppercase tracking-widest leading-tight">
+                                        {stat.label}
+                                    </span>
                                 </div>
                             ))}
                         </div>

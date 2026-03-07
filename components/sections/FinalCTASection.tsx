@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Button } from '../ui/Button';
 
 export function FinalCTASection() {
@@ -25,19 +26,23 @@ export function FinalCTASection() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row justify-center gap-6 w-full sm:w-auto">
-                    <Button
-                        size="lg"
-                        className="bg-black text-white hover:bg-gray-900 hover:text-primary px-12 py-5 text-[1.15rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] h-20 w-full sm:w-auto"
-                    >
-                        Descubre tu aventura
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="lg"
-                        className="border-2 border-black/20 text-black hover:bg-black/5 hover:border-black px-12 py-5 text-[1.15rem] transition-colors duration-300 h-20 w-full sm:w-auto"
-                    >
-                        Únete como Anfitrión
-                    </Button>
+                    <Link href="/#experiencias" className="w-full sm:w-auto">
+                        <Button
+                            size="lg"
+                            className="bg-black text-white hover:bg-gray-900 hover:text-primary px-12 py-5 text-[1.15rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] h-20 w-full"
+                        >
+                            Explorar experiencias
+                        </Button>
+                    </Link>
+                    <Link href="/experiencias" className="w-full sm:w-auto">
+                        <Button
+                            variant="ghost"
+                            size="lg"
+                            className="border-2 border-black/20 text-black hover:bg-black/5 hover:border-black px-12 py-5 text-[1.15rem] transition-colors duration-300 h-20 w-full"
+                        >
+                            Ver experiencias
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </section>

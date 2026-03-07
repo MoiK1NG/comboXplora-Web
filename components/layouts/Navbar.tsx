@@ -17,11 +17,12 @@ export function Navbar() {
     }, []);
 
     const navLinks = [
-        { name: 'Nosotros', href: '#nosotros' },
-        { name: 'Cómo Funciona', href: '#como-funciona' },
-        { name: 'Experiencias', href: '#experiencias' },
-        { name: 'Impacto', href: '#impacto' },
-        { name: 'Comunidad', href: '#comunidad' },
+        { name: 'Inicio', href: '/' },
+        { name: 'Experiencias', href: '/experiencias' },
+        { name: 'Mapa Cultural', href: '/mapa-cultural' },
+        { name: 'Nosotros', href: '/#nosotros' },
+        { name: 'Impacto', href: '/#impacto' },
+        { name: 'Contacto', href: '#contacto' },
     ];
 
     return (
@@ -51,9 +52,11 @@ export function Navbar() {
                             {link.name}
                         </Link>
                     ))}
-                    <Button variant="primary" size="sm">
-                        Empieza a explorar
-                    </Button>
+                    <Link href="/#experiencias">
+                        <Button variant="primary" size="sm">
+                            Empieza a explorar
+                        </Button>
+                    </Link>
                 </div>
 
                 {/* Mobile menu button */}
@@ -81,9 +84,11 @@ export function Navbar() {
                         </Link>
                     ))}
                     <div className="pt-2 pb-4">
-                        <Button variant="primary" className="w-full">
-                            Empieza a explorar
-                        </Button>
+                        <Link href="/#experiencias" onClick={() => setIsMobileMenuOpen(false)}>
+                            <Button variant="primary" className="w-full">
+                                Empieza a explorar
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             )}

@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Button } from '../ui/Button';
 import { Star } from 'lucide-react';
 
@@ -40,12 +41,16 @@ export function HeroSection() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 mb-14">
-                        <Button size="lg" className="h-16 w-full sm:w-auto text-lg shadow-[0_8px_20px_-6px_rgba(244,196,48,0.5)]">
-                            Descubrir Experiencias
-                        </Button>
-                        <Button variant="secondary" size="lg" className="h-16 w-full sm:w-auto text-lg">
-                            Ver Video
-                        </Button>
+                        <Link href="/#experiencias" className="w-full sm:w-auto">
+                            <Button size="lg" className="h-16 w-full text-lg shadow-[0_8px_20px_-6px_rgba(244,196,48,0.5)]">
+                                Explorar experiencias
+                            </Button>
+                        </Link>
+                        <Link href="/experiencias" className="w-full sm:w-auto">
+                            <Button variant="secondary" size="lg" className="h-16 w-full text-lg">
+                                Ver todas
+                            </Button>
+                        </Link>
                     </div>
 
                     {/* Social Proof Avatar Group */}

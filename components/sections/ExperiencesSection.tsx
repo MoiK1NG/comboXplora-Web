@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { SectionHeader } from '../ui/SectionHeader';
 import { ExperienceCard } from '../ui/ExperienceCard';
 import { Button } from '../ui/Button';
@@ -10,43 +11,58 @@ type CategoryType = 'Todas' | 'Cultura' | 'Gastronomía' | 'Música' | 'Historia
 export function ExperiencesSection() {
     const [activeCategory, setActiveCategory] = useState<CategoryType>('Todas');
 
-    const categories: CategoryType[] = ['Todas', 'Cultura', 'Gastronomía', 'Música', 'Historia', 'Comunidad'];
+    const categories: CategoryType[] = ['Todas', 'Cultura', 'Gastronomía', 'Música', 'Historia'];
 
     const experiences = [
         {
             id: 1,
-            title: "Secretos de la Empanada y Arepa e' Huevo",
+            slug: "matronas",
+            title: "Legado de Matronas",
             category: "Gastronomía" as const,
-            imageSrc: "/images/experience_gastronomy_1772729379901.png",
-            description: "Aprende los secretos culinarios de las matronas de Barrio Abajo. Cocina, ríe y degusta los sabores auténticos del Caribe colombiano."
+            imageSrc: "/images/experiencias/matronas/hero.jpg",
+            description: "Dulces tradicionales afrocolombianos. Aprende los secretos culinarios de nuestras matronas.",
+            duration: "3 horas",
+            location: "Barrio Abajo"
         },
         {
             id: 2,
-            title: "Ruta del Tambor y la Cumbia",
-            category: "Música" as const,
-            imageSrc: "/images/experience_music_1772729653199.png",
-            description: "Taller inmersivo de percusión folclórica. Siente el ritmo vibrante de los tambores y aprende los pasos básicos de nuestra amada Cumbia."
+            slug: "mascaras",
+            title: "Taller creativo de máscaras",
+            category: "Cultura" as const,
+            imageSrc: "/images/experiencias/mascaras/hero.jpg",
+            description: "Pinta tu propia máscara de tradición del Carnaval junto a maestros artesanos.",
+            duration: "4 horas",
+            location: "Galapa"
         },
         {
             id: 3,
-            title: "Mitos y Leyendas del Barrio El Prado",
-            category: "Historia" as const,
-            imageSrc: "/images/experience_historia_1772729674439.png",
-            description: "Recorrido arquitectónico nocturno. Descubre las historias ocultas detrás de las majestuosas mansiones de la época dorada."
+            slug: "turbantes",
+            title: "Taller de turbantes afrocaribeños",
+            category: "Cultura" as const,
+            imageSrc: "/images/experiencias/turbantes/hero.jpg",
+            description: "Explora la identidad, el significado y la belleza de los turbantes afrocolombianos.",
+            duration: "2.5 horas",
+            location: "Centro"
         },
         {
             id: 4,
-            title: "Taller de Máscaras del Carnaval",
-            category: "Cultura" as const,
-            imageSrc: "/images/experience_culture_1772730369365.png",
-            description: "Pinta tu propia máscara de tradición junto a maestros artesanos que han preservado el legado de nuestro gran Carnaval."
+            slug: "macondo",
+            title: "Macondo en Barranquilla",
+            category: "Historia" as const,
+            imageSrc: "/images/experiencias/macondo/hero.jpg",
+            description: "Recorrido literario y nostálgico inspirado en las huellas de Gabriel García Márquez.",
+            duration: "3 horas",
+            location: "El Prado"
         },
         {
             id: 5,
-            title: "Muralismo y Conexión en la Loma",
-            category: "Comunidad" as const,
-            imageSrc: "/images/experience_community_1772729851298.png",
-            description: "Únete a un proyecto de arte urbano comunitario. Transforma espacios públicos mientras compartes historias con la gente del barrio."
+            slug: "picotera",
+            title: "Cultura Picotera",
+            category: "Música" as const,
+            imageSrc: "/images/experiencias/picotera/hero.jpg",
+            description: "Experiencia musical y de baile auténtico en los barrios populares.",
+            duration: "5 horas",
+            location: "Las Nieves"
         }
     ];
 
@@ -67,8 +83,8 @@ export function ExperiencesSection() {
                             key={cat}
                             onClick={() => setActiveCategory(cat)}
                             className={`px-8 py-3 rounded-full font-sans font-bold text-sm transition-all duration-300 shadow-sm border ${activeCategory === cat
-                                    ? 'bg-gray-900 border-gray-900 text-white shadow-md -translate-y-1'
-                                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300'
+                                ? 'bg-gray-900 border-gray-900 text-white shadow-md -translate-y-1'
+                                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300'
                                 }`}
                         >
                             {cat}
@@ -84,7 +100,9 @@ export function ExperiencesSection() {
                 </div>
 
                 <div className="mt-20 text-center">
-                    <Button variant="secondary" size="lg">Ver Todas las Experiencias</Button>
+                    <Link href="/experiencias">
+                        <Button variant="secondary" size="lg">Ver Todas las Experiencias</Button>
+                    </Link>
                 </div>
             </div>
         </section>

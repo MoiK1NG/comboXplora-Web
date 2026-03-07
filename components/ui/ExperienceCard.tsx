@@ -1,11 +1,13 @@
 import React from 'react';
 import { MapPin, Clock, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { CategoryBadge } from './CategoryBadge';
 
 type CategoryType = 'Cultura' | 'Gastronomía' | 'Música' | 'Historia' | 'Comunidad';
 
 interface ExperienceCardProps {
+    slug: string;
     imageSrc: string;
     category: CategoryType;
     title: string;
@@ -15,6 +17,7 @@ interface ExperienceCardProps {
 }
 
 export function ExperienceCard({
+    slug,
     imageSrc,
     category,
     title,
@@ -23,7 +26,7 @@ export function ExperienceCard({
     location = "Barranquilla"
 }: ExperienceCardProps) {
     return (
-        <div className="group relative flex flex-col bg-white rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] transition-all duration-[600ms] hover:-translate-y-2 border border-gray-100 cursor-pointer">
+        <Link href={`/experiencias/${slug}`} className="group relative flex flex-col bg-white rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] transition-all duration-[600ms] hover:-translate-y-2 border border-gray-100 cursor-pointer">
 
             {/* Premium Image Container - 4:5 ratio feel */}
             <div className="relative h-80 w-full overflow-hidden">
@@ -56,11 +59,16 @@ export function ExperienceCard({
                         <span className="flex items-center gap-1.5"><MapPin size={16} className="text-gray-400" /> {location}</span>
                     </div>
 
-                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-colors duration-300">
-                        <ArrowRight size={18} className="transform -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                    <div className="flex items-center gap-3">
+                        <span className="font-outfit text-sm font-bold text-gray-900 tracking-wide uppercase opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                            Ver
+                        </span>
+                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-colors duration-300">
+                            <ArrowRight size={18} className="transform -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 }

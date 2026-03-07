@@ -8,6 +8,7 @@ import { SocialImpactSection } from "@/components/sections/SocialImpactSection";
 import { CommunitySection } from "@/components/sections/CommunitySection";
 import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
 import { FinalCTASection } from "@/components/sections/FinalCTASection";
+import { MapaCulturalSection } from "@/components/sections/MapaCulturalSection";
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
         <HowItWorksSection />
         <ExperiencesSection />
         <SocialImpactSection />
+        <MapaCulturalSection />
         <CommunitySection />
         <TestimonialsSection />
         <FinalCTASection />

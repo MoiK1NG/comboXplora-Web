@@ -10,6 +10,10 @@ export type Experience = {
     lat: number;
     lng: number;
     coverImage: string;
+    fullDescription: string;
+    includes: string[];
+    whatToExpect: string[];
+    recommendations: string[];
 };
 
 export type AudioPoint = {

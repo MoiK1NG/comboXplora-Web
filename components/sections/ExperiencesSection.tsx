@@ -16,7 +16,7 @@ export function ExperiencesSection() {
     const experiences = [
         {
             id: 1,
-            slug: "matronas",
+            slug: "dulces",
             title: "Legado de Matronas",
             category: "Gastronomía" as const,
             imageSrc: "/images/authentic/portada_dulces.jpg",

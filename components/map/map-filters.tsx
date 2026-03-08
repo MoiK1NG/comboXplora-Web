@@ -1,42 +1,27 @@
-import { Dispatch, SetStateAction } from "react";
-
-type FilterType = "all" | "experience" | "audio";
+type FilterType = "Todas" | "Gastronomía" | "Arte" | "Literatura" | "Música" | "Comunidad";
 
 interface MapFiltersProps {
     currentFilter: FilterType;
-    setFilter: Dispatch<SetStateAction<FilterType>>;
+    setFilter: (filter: FilterType) => void;
 }
+
+const CATEGORIES: FilterType[] = ["Todas", "Gastronomía", "Arte", "Literatura", "Música", "Comunidad"];
 
 export function MapFilters({ currentFilter, setFilter }: MapFiltersProps) {
     return (
-        <div className="flex flex-wrap gap-2 mb-4">
-            <button
-                onClick={() => setFilter("all")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === "all"
-                        ? "bg-gray-800 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-            >
-                Todos
-            </button>
-            <button
-                onClick={() => setFilter("experience")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === "experience"
-                        ? "bg-[#F4C430] text-gray-900"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-            >
-                Experiencias
-            </button>
-            <button
-                onClick={() => setFilter("audio")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === "audio"
-                        ? "bg-[#2A9D8F] text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-            >
-                Puntos Sonoros
-            </button>
+        <div className="flex flex-wrap gap-2 mb-6">
+            {CATEGORIES.map((cat) => (
+                <button
+                    key={cat}
+                    onClick={() => setFilter(cat)}
+                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border ${currentFilter === cat
+                        ? "bg-gray-900 border-gray-900 text-white shadow-md -translate-y-0.5"
+                        : "bg-white border-gray-200 text-gray-600 hover:border-primary hover:text-primary"
+                        }`}
+                >
+                    {cat}
+                </button>
+            ))}
         </div>
     );
 }

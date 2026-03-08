@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { MapFilters } from "../../components/map/map-filters";
-import { MapSidebar } from "../../components/map/map-sidebar";
 import { MapLegend } from "../../components/map/map-legend";
 import { experiences, audioPoints } from "../../lib/map-data";
 import { MapItem } from "../../lib/types";
@@ -18,19 +17,18 @@ const CulturalMap = dynamic(() => import("../../components/map/cultural-map"), {
     ),
 });
 
-type FilterType = "all" | "experience" | "audio";
+type FilterType = "Todas" | "Gastronomía" | "Arte" | "Literatura" | "Música" | "Comunidad";
 
 export default function MapaCulturalPage() {
-    const [filter, setFilter] = useState<FilterType>("all");
-    const [selectedItem, setSelectedItem] = useState<MapItem | null>(null);
+    const [filter, setFilter] = useState<FilterType>("Todas");
 
     const allItems: MapItem[] = useMemo(() => {
         return [...experiences, ...audioPoints];
     }, []);
 
     const filteredItems = useMemo(() => {
-        if (filter === "all") return allItems;
-        return allItems.filter((item) => item.type === filter);
+        if (filter === "Todas") return allItems;
+        return allItems.filter((item) => item.category === filter);
     }, [allItems, filter]);
 
     return (
@@ -39,10 +37,10 @@ export default function MapaCulturalPage() {
             <header className="bg-white border-b border-gray-100 pt-8 pb-6 px-4 sm:px-6 lg:px-8 z-10 relative">
                 <div className="max-w-7xl mx-auto">
                     <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
-                        Mapa Cultural de Barranquilla
+                        Mapa Cultural de Experiencias
                     </h1>
                     <p className="mt-3 text-lg text-gray-500 max-w-2xl">
-                        Explora experiencias culturales y escucha historias narradas por hacedores locales.
+                        Explora Barranquilla a través de experiencias auténticas, ubicadas en los territorios donde la cultura vive.
                     </p>
                 </div>
             </header>
@@ -52,20 +50,14 @@ export default function MapaCulturalPage() {
                 {/* Filters */}
                 <MapFilters currentFilter={filter} setFilter={setFilter} />
 
-                {/* Map Container relative for sidebar and legend positioning */}
+                {/* Map Container relative for legend positioning */}
                 <div className="relative flex-1 rounded-2xl overflow-hidden shadow-sm border border-gray-200 min-h-[500px]">
                     <CulturalMap
                         items={filteredItems}
-                        onMarkerClick={(item) => setSelectedItem(item)}
                     />
 
                     {/* Map Legend inside Map container */}
                     <MapLegend />
-
-                    {/* Sidebar Panel Overlay */}
-                    {selectedItem && (
-                        <MapSidebar item={selectedItem} onClose={() => setSelectedItem(null)} />
-                    )}
                 </div>
             </main>
         </div>

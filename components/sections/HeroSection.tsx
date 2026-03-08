@@ -58,7 +58,7 @@ export function HeroSection() {
                         <div className="flex -space-x-4">
                             {[1, 2, 3].map((i) => (
                                 <div key={i} className="w-12 h-12 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-sm relative">
-                                    <Image src={i === 1 ? "/images/authentic/about_1.heic" : i === 2 ? "/images/authentic/about_2.jpg" : "/images/authentic/about_3.heic"} alt="User" fill className="object-cover" />
+                                    <Image src={i === 1 ? "/images/authentic/avatar_1.jpg" : i === 2 ? "/images/authentic/avatar_2.jpg" : "/images/authentic/portada_turbantes.jpg"} alt="User" fill className="object-cover" />
                                 </div>
                             ))}
                             <div className="w-12 h-12 rounded-full border-4 border-white bg-gray-50 flex items-center justify-center font-bold text-gray-600 shadow-sm text-sm z-10">
@@ -84,8 +84,8 @@ export function HeroSection() {
                     {/* Main Hero Image */}
                     <div className="absolute inset-0 w-[95%] h-[95%] rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_-15px_rgba(0,0,0,0.15)] bg-gray-100 group">
                         <Image
-                            src="/images/authentic/hero_main.jpg"
-                            alt="Grupo de personas interactuando"
+                            src="/images/authentic/hero_main_v2.jpg"
+                            alt="Grupo de personas curiosas explorando"
                             fill
                             className="object-cover transform group-hover:scale-105 transition-transform duration-[2s] ease-out will-change-transform"
                             priority
@@ -106,7 +106,7 @@ export function HeroSection() {
 
                     {/* Floating Image Card 2 */}
                     <div className="absolute top-24 -right-6 w-44 h-56 rounded-[1.5rem] overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] border-4 border-white animate-[bounce_7s_infinite_reverse_ease-in-out]">
-                        <Image src="/images/authentic/hero_card1.heic" alt="Cultura local" fill className="object-cover" />
+                        <Image src="/images/authentic/hero_small_v2.jpg" alt="Cultura local Barranquilla" fill className="object-cover" />
                     </div>
                 </div>
             </div>

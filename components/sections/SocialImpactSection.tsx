@@ -59,7 +59,7 @@ export function SocialImpactSection() {
                     {/* Visual Column */}
                     <div className="lg:w-1/2 relative h-[600px] w-full mt-10 lg:mt-0">
                         <div className="absolute inset-0 rounded-[3rem] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] bg-white border-8 border-white group">
-                            <Image src="/images/authentic/impact_main.heic" alt="Impacto Social Comunidad" fill className="object-cover transition-transform duration-[2s] group-hover:scale-105 will-change-transform" />
+                            <Image src="/images/authentic/impact_v2.jpg" alt="Impacto Social Comunidad" fill className="object-cover transition-transform duration-[2s] group-hover:scale-105 will-change-transform" />
                             <div className="absolute inset-0 bg-black/10 transition-opacity duration-700 group-hover:opacity-0" />
                         </div>
 

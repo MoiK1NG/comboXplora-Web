@@ -2,20 +2,32 @@ import { Map, Headphones } from "lucide-react";
 
 export function MapLegend() {
     return (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mt-4 flex flex-col gap-3 lg:absolute lg:bottom-4 lg:left-4 z-[400] lg:mt-0 lg:max-w-[200px]">
-            <h3 className="text-sm font-semibold text-gray-800">Leyenda</h3>
-            <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-[#F4C430] flex-shrink-0 flex items-center justify-center">
-                        <Map className="w-2.5 h-2.5 text-yellow-900" />
+        <div className="bg-white/95 backdrop-blur-md p-6 rounded-[1.5rem] shadow-[0_15px_40px_-10px_rgba(0,0,0,0.08)] border border-gray-100 mt-4 flex flex-col gap-5 lg:absolute lg:bottom-8 lg:left-8 z-[400] lg:mt-0 w-full lg:max-w-[240px] animate-in fade-in duration-700">
+            <div>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Mapa Cultural</h3>
+                <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
+                    Explora los puntos clave que definen la identidad de Barranquilla.
+                </p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#F4C430] flex-shrink-0 flex items-center justify-center shadow-lg shadow-yellow-500/20 border-2 border-white">
+                        <Map className="w-5 h-5 text-yellow-900" />
                     </div>
-                    <span className="text-xs text-gray-600">Experiencias Culturales</span>
+                    <div>
+                        <span className="text-xs font-black text-gray-900 block leading-none">Experiencias</span>
+                        <span className="text-[10px] text-gray-500 font-medium tracking-tight">Actividades en territorio</span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-[#2A9D8F] flex-shrink-0 flex items-center justify-center">
-                        <Headphones className="w-2.5 h-2.5 text-white" />
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#2A9D8F] flex-shrink-0 flex items-center justify-center shadow-lg shadow-teal-500/20 border-2 border-white">
+                        <Headphones className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-xs text-gray-600">Historias Sonoras</span>
+                    <div>
+                        <span className="text-xs font-black text-gray-900 block leading-none">Historias</span>
+                        <span className="text-[10px] text-gray-500 font-medium tracking-tight">Audio guías locales</span>
+                    </div>
                 </div>
             </div>
         </div>

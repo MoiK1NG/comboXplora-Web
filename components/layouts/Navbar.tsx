@@ -31,12 +31,12 @@ export function Navbar() {
         >
             <div className="max-w-7xl mx-auto px-6 lg:px-8 flex justify-between items-center">
                 {/* Logo */}
-                <Link href="/" className="relative h-10 w-48 sm:w-56">
+                <Link href="/" className="relative h-12 w-48 sm:w-52">
                     <Image
-                        src="/logos/ComboXplora_Mesa de trabajo 1.png"
+                        src="/logos/logo_principal.png"
                         alt="ComboXplora Logo"
                         fill
-                        className="object-contain object-left"
+                        className="object-contain object-left drop-shadow-sm transition-transform hover:scale-[1.02] duration-300"
                         priority
                     />
                 </Link>

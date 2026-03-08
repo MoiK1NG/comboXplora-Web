@@ -20,17 +20,17 @@ export function AboutSection() {
 
                         {/* Large Image */}
                         <div className="absolute top-0 left-0 w-[65%] h-[60%] rounded-[2.5rem] overflow-hidden shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border-[8px] border-white z-20">
-                            <Image src="/images/experience_historia_1772729674439.png" alt="Historia" fill className="object-cover hover:scale-105 transition-transform duration-[1.5s]" />
+                            <Image src="/images/authentic/about_1.heic" alt="Cultura Picotera comunitaria" fill className="object-cover hover:scale-105 transition-transform duration-[1.5s]" />
                         </div>
 
                         {/* Medium Image */}
                         <div className="absolute bottom-10 right-0 w-[55%] h-[55%] rounded-[2.5rem] overflow-hidden shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border-[8px] border-white z-30">
-                            <Image src="/images/experience_gastronomy_1772729379901.png" alt="Gastronomía" fill className="object-cover hover:scale-105 transition-transform duration-[1.5s]" />
+                            <Image src="/images/authentic/about_2.jpg" alt="Historia local" fill className="object-cover hover:scale-105 transition-transform duration-[1.5s]" />
                         </div>
 
                         {/* Small Brand Card */}
-                        <div className="absolute top-[40%] left-[5%] w-[35%] aspect-square rounded-[2rem] bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] p-6 z-40 flex flex-col justify-center items-center text-center">
-                            <Image src="/logos/ComboXplora_Mesa de trabajo 1.png" alt="Logo" width={120} height={120} className="object-contain opacity-80" />
+                        <div className="absolute top-[40%] left-[5%] w-[35%] aspect-square rounded-[2rem] bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] p-6 z-40 flex flex-col justify-center items-center text-center group cursor-pointer">
+                            <Image src="/logos/logo_principal.png" alt="Logo" width={120} height={120} className="object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
                             <p className="font-outfit font-black text-sm text-gray-400 tracking-widest uppercase mt-4">Est. 2024</p>
                         </div>
                     </div>

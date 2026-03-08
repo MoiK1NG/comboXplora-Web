@@ -19,7 +19,7 @@ export function ExperiencesSection() {
             slug: "matronas",
             title: "Legado de Matronas",
             category: "Gastronomía" as const,
-            imageSrc: "/images/experiencias/matronas/hero.jpg",
+            imageSrc: "/images/authentic/exp_matronas.heic",
             description: "Dulces tradicionales afrocolombianos. Aprende los secretos culinarios de nuestras matronas.",
             duration: "3 horas",
             location: "Barrio Abajo"
@@ -29,7 +29,7 @@ export function ExperiencesSection() {
             slug: "mascaras",
             title: "Taller creativo de máscaras",
             category: "Cultura" as const,
-            imageSrc: "/images/experiencias/mascaras/hero.jpg",
+            imageSrc: "/images/authentic/exp_mascaras.heic",
             description: "Pinta tu propia máscara de tradición del Carnaval junto a maestros artesanos.",
             duration: "4 horas",
             location: "Galapa"
@@ -39,7 +39,7 @@ export function ExperiencesSection() {
             slug: "turbantes",
             title: "Taller de turbantes afrocaribeños",
             category: "Cultura" as const,
-            imageSrc: "/images/experiencias/turbantes/hero.jpg",
+            imageSrc: "/images/authentic/exp_turbantes.jpg",
             description: "Explora la identidad, el significado y la belleza de los turbantes afrocolombianos.",
             duration: "2.5 horas",
             location: "Centro"
@@ -49,7 +49,7 @@ export function ExperiencesSection() {
             slug: "macondo",
             title: "Macondo en Barranquilla",
             category: "Historia" as const,
-            imageSrc: "/images/experiencias/macondo/hero.jpg",
+            imageSrc: "/images/authentic/exp_macondo.jpg",
             description: "Recorrido literario y nostálgico inspirado en las huellas de Gabriel García Márquez.",
             duration: "3 horas",
             location: "El Prado"
@@ -59,7 +59,7 @@ export function ExperiencesSection() {
             slug: "picotera",
             title: "Cultura Picotera",
             category: "Música" as const,
-            imageSrc: "/images/experiencias/picotera/hero.jpg",
+            imageSrc: "/images/authentic/exp_picotera.heic",
             description: "Experiencia musical y de baile auténtico en los barrios populares.",
             duration: "5 horas",
             location: "Las Nieves"

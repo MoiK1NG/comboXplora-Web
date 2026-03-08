@@ -8,9 +8,9 @@ export function Footer() {
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-10 mb-16">
                 {/* Brand */}
                 <div className="md:col-span-1">
-                    <div className="relative h-14 w-56 mb-8">
+                    <div className="relative h-[4.5rem] w-52 mb-8">
                         <Image
-                            src="/logos/ComboXplora_Mesa de trabajo 1.png"
+                            src="/logos/logo_principal.png"
                             alt="ComboXplora Logo"
                             fill
                             className="object-contain object-left"

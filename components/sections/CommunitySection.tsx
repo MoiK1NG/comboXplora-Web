@@ -13,7 +13,7 @@ export function CommunitySection() {
 
                 <div className="relative mt-20 group cursor-pointer">
                     <div className="w-full h-[550px] md:h-[700px] rounded-[3.5rem] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] relative border-[12px] border-white">
-                        <Image src="/images/experience_community_1772729851298.png" alt="Comunidad" fill className="object-cover transform group-hover:scale-105 transition-transform duration-[2s] ease-out" />
+                        <Image src="/images/authentic/about_3.heic" alt="Comunidad ComboXplora" fill className="object-cover transform group-hover:scale-105 transition-transform duration-[2s] ease-out" />
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-transparent to-transparent opacity-80" />
 
                         <div className="absolute bottom-10 left-10 right-10 md:bottom-16 md:left-16 md:right-auto bg-white/95 p-10 rounded-[2.5rem] shadow-2xl max-w-lg backdrop-blur-md border border-white">
@@ -25,7 +25,7 @@ export function CommunitySection() {
                                 <div className="flex -space-x-4">
                                     {[1, 2, 3, 4, 5].map((i) => (
                                         <div key={i} className={`w-14 h-14 rounded-full border-4 border-white bg-gray-300 shadow-sm flex items-center justify-center text-xs overflow-hidden`}>
-                                            <Image src={i % 2 === 0 ? "/images/experience_gastronomy_1772729379901.png" : "/images/hero_barranquilla_1772729237395.png"} alt="User" width={56} height={56} className="object-cover" />
+                                            <Image src={i % 2 === 0 ? "/images/authentic/about_1.heic" : "/images/authentic/about_2.jpg"} alt="User" width={56} height={56} className="object-cover" />
                                         </div>
                                     ))}
                                 </div>

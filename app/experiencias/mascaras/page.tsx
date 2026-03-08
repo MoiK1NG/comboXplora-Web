@@ -12,7 +12,7 @@ export default function MascarasPage() {
 
             <main className="flex-grow pt-32 pb-20 max-w-5xl mx-auto px-6 lg:px-8">
                 <div className="relative w-full h-[500px] rounded-[3rem] overflow-hidden mb-12 shadow-xl border-8 border-white">
-                    <Image src="/images/experiencias/mascaras/hero.jpg" alt="Taller creativo de máscaras" fill className="object-cover" />
+                    <Image src="/images/authentic/exp_mascaras.heic" alt="Taller creativo de máscaras" fill className="object-cover" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-16">

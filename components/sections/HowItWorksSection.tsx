@@ -5,24 +5,30 @@ import { SectionHeader } from '../ui/SectionHeader';
 export function HowItWorksSection() {
     const steps = [
         {
-            icon: <Search size={40} className="text-gray-900" />,
+            icon: <Search size={40} className="text-gray-900 group-hover:text-primary transition-colors duration-500" />,
             title: "Descubre",
             description: "Explora nuestra curaduría de experiencias auténticas guiadas por hacedores culturales locales.",
-            color: "bg-primary/20",
+            glow: "bg-primary/20",
+            hoverAccent: "group-hover:border-primary group-hover:bg-[#fffdf7]",
+            badgeColor: "group-hover:bg-primary group-hover:text-black group-hover:border-primary",
             delay: "0s"
         },
         {
-            icon: <Users size={40} className="text-gray-900" />,
+            icon: <Users size={40} className="text-gray-900 group-hover:text-accent transition-colors duration-500" />,
             title: "Conecta",
             description: "Reserva tu cupo y únete a un grupo reducido de personas curiosas como tú, listos para explorar.",
-            color: "bg-accent/20",
+            glow: "bg-accent/20",
+            hoverAccent: "group-hover:border-accent group-hover:bg-[#f2f8f7]",
+            badgeColor: "group-hover:bg-accent group-hover:text-white group-hover:border-accent",
             delay: "100ms"
         },
         {
-            icon: <Sparkles size={40} className="text-gray-900" />,
+            icon: <Sparkles size={40} className="text-gray-900 group-hover:text-[#F4C430] transition-colors duration-500" />,
             title: "Vive",
             description: "Sumérgete en la cultura, haz nuevos amigos, aprende algo nuevo y crea recuerdos inolvidables.",
-            color: "bg-orange-100",
+            glow: "bg-orange-100",
+            hoverAccent: "group-hover:border-[#F4C430] group-hover:bg-[#fffdf7]",
+            badgeColor: "group-hover:bg-[#F4C430] group-hover:text-black group-hover:border-[#F4C430]",
             delay: "200ms"
         }
     ];
@@ -45,19 +51,19 @@ export function HowItWorksSection() {
                             style={{ animationDelay: step.delay }}>
 
                             {/* Premium Floating Icon Container */}
-                            <div className="relative w-32 h-32 mb-10 flex items-center justify-center">
+                            <div className="relative w-32 h-32 mb-10 flex items-center justify-center cursor-default">
                                 {/* Soft backdrop blob */}
-                                <div className={`absolute inset-0 ${step.color} rounded-full filter blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
+                                <div className={`absolute inset-0 ${step.glow} rounded-full filter blur-[20px] opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110`} />
 
                                 {/* Main geometric shape */}
-                                <div className="relative w-28 h-28 bg-white shadow-[0_15px_40px_-10px_rgba(0,0,0,0.08)] border border-gray-100 rounded-[2rem] flex items-center justify-center group-hover:-translate-y-3 transition-transform duration-500 ease-out rotate-3 group-hover:rotate-0">
+                                <div className={`relative w-28 h-28 bg-white shadow-[0_15px_40px_-10px_rgba(0,0,0,0.08)] border border-gray-100 rounded-[2rem] flex items-center justify-center group-hover:-translate-y-3 transition-all duration-500 ease-out rotate-3 group-hover:rotate-0 ${step.hoverAccent}`}>
                                     <div className="-rotate-3 group-hover:rotate-0 transition-transform duration-500">
                                         {step.icon}
                                     </div>
                                 </div>
 
                                 {/* Elegant Step Number Badge */}
-                                <div className="absolute -top-3 -right-3 w-10 h-10 bg-gray-900 border-[3px] border-white text-white rounded-full flex items-center justify-center font-outfit font-black text-lg shadow-md z-20">
+                                <div className={`absolute -top-3 -right-3 w-10 h-10 bg-gray-900 border-[3px] border-white text-white rounded-full flex items-center justify-center font-outfit font-black text-lg shadow-md z-20 transition-colors duration-500 ${step.badgeColor}`}>
                                     {index + 1}
                                 </div>
                             </div>

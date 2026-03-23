@@ -3,9 +3,11 @@ export type Experience = {
     title: string;
     slug: string;
     type: "experience";
-    category: string;
+    categories: string[];
     shortDescription: string;
     neighborhood: string;
+    locationLabel?: string;
+    meetingPoint?: string;
     duration: string;
     lat: number;
     lng: number;
@@ -21,7 +23,7 @@ export type AudioPoint = {
     title: string;
     slug: string;
     type: "audio";
-    category: string;
+    categories: string[];
     shortDescription: string;
     narrator: string;
     lat: number;

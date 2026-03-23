@@ -19,7 +19,7 @@ export function ExperienceCard({ experience }: ExperienceCardProps) {
                 </div>
                 <div className="absolute top-4 left-4">
                     <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[10px] font-bold text-gray-800 uppercase tracking-widest">
-                        {experience.category}
+                        {experience.categories[0]}
                     </span>
                 </div>
             </div>

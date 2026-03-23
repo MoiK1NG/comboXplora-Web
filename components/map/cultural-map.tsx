@@ -82,7 +82,7 @@ export default function CulturalMap({ items, onMarkerClick }: CulturalMapProps) 
                         <Popup className="custom-popup" minWidth={260}>
                             <div className="p-3">
                                 <span className="text-[9px] font-black uppercase tracking-widest text-primary py-1 px-3 bg-primary/10 rounded-full mb-3 inline-block">
-                                    {item.category}
+                                    {item.categories.join(' • ')}
                                 </span>
                                 <h3 className="font-outfit text-lg font-black text-gray-900 mb-2 leading-tight">
                                     {item.title}

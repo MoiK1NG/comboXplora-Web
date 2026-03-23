@@ -13,12 +13,14 @@ export function ExperiencesSection() {
 
     const categories: CategoryType[] = ['Todas', 'Cultura', 'Gastronomía', 'Música', 'Historia'];
 
-    const experiences = [
+    type ExperienceCardType = Omit<React.ComponentProps<typeof ExperienceCard>, 'key'> & { id: number };
+
+    const experiences: ExperienceCardType[] = [
         {
             id: 1,
             slug: "dulces",
             title: "Legado de Matronas",
-            category: "Gastronomía" as const,
+            categories: ["Gastronomía"],
             imageSrc: "/images/authentic/portada_dulces.jpg",
             description: "Dulces tradicionales afrocolombianos. Aprende los secretos culinarios de nuestras matronas.",
             duration: "3 horas",
@@ -28,7 +30,7 @@ export function ExperiencesSection() {
             id: 2,
             slug: "mascaras",
             title: "Taller creativo de máscaras",
-            category: "Cultura" as const,
+            categories: ["Cultura"],
             imageSrc: "/images/authentic/portada_mascaras.jpg",
             description: "Pinta tu propia máscara de tradición del Carnaval junto a maestros artesanos.",
             duration: "4 horas",
@@ -38,7 +40,7 @@ export function ExperiencesSection() {
             id: 3,
             slug: "turbantes",
             title: "Taller de turbantes afrocaribeños",
-            category: "Cultura" as const,
+            categories: ["Cultura"],
             imageSrc: "/images/authentic/portada_turbantes.jpg",
             description: "Explora la identidad, el significado y la belleza de los turbantes afrocolombianos.",
             duration: "2.5 horas",
@@ -48,7 +50,7 @@ export function ExperiencesSection() {
             id: 4,
             slug: "macondo",
             title: "Macondo en Barranquilla",
-            category: "Historia" as const,
+            categories: ["Historia"],
             imageSrc: "/images/authentic/portada_macondo.jpg",
             description: "Recorrido literario y nostálgico inspirado en las huellas de Gabriel García Márquez.",
             duration: "3 horas",
@@ -58,7 +60,7 @@ export function ExperiencesSection() {
             id: 5,
             slug: "picotera",
             title: "Cultura Picotera",
-            category: "Música" as const,
+            categories: ["Música"],
             imageSrc: "/images/authentic/portada_picos.jpg",
             description: "Experiencia musical y de baile auténtico en los barrios populares.",
             duration: "5 horas",
@@ -66,7 +68,7 @@ export function ExperiencesSection() {
         }
     ];
 
-    const filtered = activeCategory === 'Todas' ? experiences : experiences.filter(e => e.category === activeCategory);
+    const filtered = activeCategory === 'Todas' ? experiences : experiences.filter(e => e.categories.includes(activeCategory));
 
     return (
         <section id="experiencias" className="py-28 bg-[#fafafa]">

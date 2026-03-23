@@ -26,10 +26,12 @@ export function SelectedExperiencePanel({ item, onClose }: SelectedExperiencePan
                     <X size={20} />
                 </button>
 
-                <div className="absolute bottom-6 left-8 z-10">
-                    <span className="px-4 py-1.5 rounded-full bg-primary text-black text-[10px] font-black uppercase tracking-widest shadow-lg">
-                        {item.category}
-                    </span>
+                <div className="absolute bottom-6 left-8 z-10 flex flex-wrap gap-2">
+                    {item.categories.map((cat, idx) => (
+                        <span key={idx} className="px-4 py-1.5 rounded-full bg-primary text-black text-[10px] font-black uppercase tracking-widest shadow-lg">
+                            {cat}
+                        </span>
+                    ))}
                 </div>
             </div>
 
@@ -42,16 +44,33 @@ export function SelectedExperiencePanel({ item, onClose }: SelectedExperiencePan
                     {item.shortDescription}
                 </p>
 
-                <div className="flex flex-wrap gap-6 mb-10 text-sm font-medium text-gray-500">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                            <MapPin size={16} />
+                <div className="flex flex-col gap-4 mb-10 text-sm font-medium text-gray-500">
+                    {item.type === 'experience' && item.locationLabel && (
+                        <div className="flex items-start gap-4">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex-shrink-0 flex items-center justify-center text-primary mt-1">
+                                <MapPin size={16} />
+                            </div>
+                            <div>
+                                <span className="block font-bold text-gray-900">{item.locationLabel}</span>
+                                <span className="text-xs">{item.neighborhood}</span>
+                                {item.meetingPoint && (
+                                    <span className="block text-xs text-gray-400 mt-1">Punto de encuentro: {item.meetingPoint}</span>
+                                )}
+                            </div>
                         </div>
-                        <span>{item.type === 'experience' ? item.neighborhood : 'Presencial'}</span>
-                    </div>
+                    )}
+                    {(!item.type || item.type !== 'experience' || !item.locationLabel) && (
+                        <div className="flex items-center gap-4">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex-shrink-0 flex items-center justify-center text-primary">
+                                <MapPin size={16} />
+                            </div>
+                            <span>{item.type === 'experience' ? item.neighborhood : 'Presencial'}</span>
+                        </div>
+                    )}
+
                     {item.type === 'experience' && (
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <div className="flex items-center gap-4">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex-shrink-0 flex items-center justify-center text-primary">
                                 <Clock size={16} />
                             </div>
                             <span>{item.duration}</span>

@@ -9,7 +9,7 @@ type CategoryType = 'Cultura' | 'Gastronomía' | 'Música' | 'Historia' | 'Comun
 interface ExperienceCardProps {
     slug: string;
     imageSrc: string;
-    category: CategoryType;
+    categories: CategoryType[];
     title: string;
     description: string;
     duration?: string;
@@ -19,7 +19,7 @@ interface ExperienceCardProps {
 export function ExperienceCard({
     slug,
     imageSrc,
-    category,
+    categories,
     title,
     description,
     duration = "3 horas",
@@ -38,7 +38,7 @@ export function ExperienceCard({
                     className="object-cover transform scale-100 group-hover:scale-110 transition-transform duration-[800ms] ease-out will-change-transform"
                 />
                 <div className="absolute top-6 left-6 z-20">
-                    <CategoryBadge category={category} className="shadow-lg backdrop-blur-md bg-white/95 border-none px-4 py-2 text-[0.7rem]" />
+                    <CategoryBadge category={categories[0]} className="shadow-lg backdrop-blur-md bg-white/95 border-none px-4 py-2 text-[0.7rem]" />
                 </div>
             </div>
 

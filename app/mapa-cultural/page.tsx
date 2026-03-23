@@ -8,7 +8,7 @@ import { experiences, audioPoints } from "../../lib/map-data";
 import { MapItem } from "../../lib/types";
 import { SelectedExperiencePanel } from "../../components/map/selected-experience-panel";
 import Link from "next/link";
-import { ArrowLeft, Map as MapIcon, Info, Users, Heart, Star, ChevronRight } from "lucide-react";
+import { ArrowLeft, Map as MapIcon, Info, Users, Heart, Star, ChevronRight, Filter, MousePointerClick } from "lucide-react";
 
 // Dynamically import the map to avoid SSR issues with Leaflet
 const CulturalMap = dynamic(() => import("../../components/map/cultural-map"), {
@@ -35,7 +35,7 @@ export default function MapaCulturalPage() {
 
     const filteredItems = useMemo(() => {
         if (filter === "Todas") return allItems;
-        return allItems.filter((item) => item.category === filter);
+        return allItems.filter((item) => item.categories.includes(filter));
     }, [allItems, filter]);
 
     const quickLinks = [
@@ -111,8 +111,32 @@ export default function MapaCulturalPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="relative">
+                <div className="relative mb-6">
                     <MapFilters currentFilter={filter} setFilter={setFilter} />
+                </div>
+
+                {/* How to use the map */}
+                <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-gray-100 p-5 mb-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 shadow-sm">
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-600">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                            <Filter size={14} />
+                        </div>
+                        <p>1. Selecciona una <span className="font-bold text-gray-900">categoría</span></p>
+                    </div>
+                    <div className="hidden sm:block w-[1px] h-8 bg-gray-200" />
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-600">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                            <MousePointerClick size={14} />
+                        </div>
+                        <p>2. Haz clic en un <span className="font-bold text-gray-900">punto del mapa</span></p>
+                    </div>
+                    <div className="hidden sm:block w-[1px] h-8 bg-gray-200" />
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-600">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                            <Star size={14} />
+                        </div>
+                        <p>3. Descubre la <span className="font-bold text-gray-900">experiencia</span></p>
+                    </div>
                 </div>
 
                 {/* Map Section */}

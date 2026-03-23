@@ -26,7 +26,7 @@ export function ExperienceHero({ experience }: ExperienceHeroProps) {
                     <div className="order-2 lg:order-1">
                         <div className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-wider mb-6">
                             <Tag className="w-3 h-3 mr-2" />
-                            {experience.category}
+                            {experience.categories[0]}
                         </div>
 
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight tracking-tight mb-6">

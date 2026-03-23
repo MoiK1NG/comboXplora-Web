@@ -40,7 +40,7 @@ export function MapSidebar({ item, onClose }: MapSidebarProps) {
             <div className="p-6 flex-1 overflow-y-auto flex flex-col">
                 <div className="mb-2">
                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        {item.category}
+                        {item.categories[0]}
                     </span>
                     <h2 className="text-2xl font-bold text-gray-900 mt-1 leading-tight">
                         {item.title}
@@ -97,8 +97,8 @@ export function MapSidebar({ item, onClose }: MapSidebarProps) {
                     <Link
                         href={item.type === "experience" ? `/experiencias/${item.slug}` : `/audios/${item.slug}`}
                         className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold transition-all shadow-md hover:shadow-lg ${item.type === "experience"
-                                ? "bg-[#F4C430] hover:bg-[#e0b42c] text-gray-900 shadow-[#F4C430]/20"
-                                : "bg-[#2A9D8F] hover:bg-[#218276] shadow-[#2A9D8F]/20"
+                            ? "bg-[#F4C430] hover:bg-[#e0b42c] text-gray-900 shadow-[#F4C430]/20"
+                            : "bg-[#2A9D8F] hover:bg-[#218276] shadow-[#2A9D8F]/20"
                             }`}
                     >
                         Ver {item.type === "experience" ? "experiencia" : "historia sonora"}

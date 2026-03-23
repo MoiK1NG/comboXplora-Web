@@ -31,7 +31,7 @@ export default async function AudioDetalle({
 
                     <div className="mb-4">
                         <span className="inline-block px-3 py-1 bg-[#2A9D8F]/10 text-[#218276] rounded-full text-xs font-bold uppercase tracking-wide">
-                            {audio.category}
+                            {audio.categories[0]}
                         </span>
                     </div>
 

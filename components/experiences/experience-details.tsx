@@ -1,5 +1,7 @@
-import { CheckCircle2, Star, Info, Calendar } from "lucide-react";
+import { CheckCircle2, Star, Info, Calendar, Headphones, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 import { Experience } from "../../lib/types";
+import { getWhatsAppUrl } from "../../lib/whatsapp";
 
 interface ExperienceDetailsProps {
     experience: Experience;
@@ -41,6 +43,28 @@ export function ExperienceDetails({ experience }: ExperienceDetailsProps) {
                             </ul>
                         </div>
 
+                        {/* Audio Section (MVP) */}
+                        <div className="bg-[#2A9D8F]/5 border border-[#2A9D8F]/20 rounded-3xl p-8 md:p-12 mb-8">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                                <Headphones className="w-6 h-6 text-[#2A9D8F] mr-3" />
+                                Escucha esta experiencia
+                            </h2>
+                            <p className="text-gray-600 mb-6">
+                                Sumérgete en la cultura de Barranquilla escuchando la historia de los hacedores locales.
+                                Reproduce el audio a continuación para conocer más detalles y secretos.
+                            </p>
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
+                                <audio controls className="w-full max-w-md" preload="metadata">
+                                    {/* Placeholder audio path. Add .mp3 files matching the slug to /public/audios/ */}
+                                    <source src={`/audios/${experience.slug}.mp3`} type="audio/mpeg" />
+                                    Tu navegador no soporta el elemento de audio.
+                                </audio>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-4 italic text-center">
+                                Nota: Si el audio no reproduce, asegúrate de colocar el archivo {experience.slug}.mp3 en 'public/audios/'.
+                            </p>
+                        </div>
+
                         {/* Recommendations */}
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
@@ -55,6 +79,28 @@ export function ExperienceDetails({ experience }: ExperienceDetailsProps) {
                                 ))}
                             </div>
                         </div>
+
+                        {/* Gallery Section */}
+                        {experience.gallery && experience.gallery.length > 0 && (
+                            <div className="pt-8 border-t border-gray-100 mt-8">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                                    <ImageIcon className="w-6 h-6 text-primary mr-3" />
+                                    Galería de la experiencia
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {experience.gallery.map((imgSrc, index) => (
+                                        <div key={index} className="relative aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+                                            <Image
+                                                src={imgSrc}
+                                                alt={`Galería de ${experience.title} - Imagen ${index + 1}`}
+                                                fill
+                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Sidebar Sidebar Column */}
@@ -76,10 +122,15 @@ export function ExperienceDetails({ experience }: ExperienceDetailsProps) {
                                 </div>
                             </div>
 
-                            <button className="w-full bg-primary hover:bg-[#e0b42c] text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-primary/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3">
+                            <a
+                                href={getWhatsAppUrl(experience.title)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full bg-primary hover:bg-[#e0b42c] text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-primary/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3"
+                            >
                                 <Calendar className="w-5 h-5" />
                                 Reservar experiencia
-                            </button>
+                            </a>
 
                             <p className="text-center text-xs text-gray-400 mt-6">
                                 * Conecta directamente con el hacedor cultural después de confirmar.

@@ -4,6 +4,7 @@ import React from 'react';
 import { MapPin, Clock, ChevronRight, X } from 'lucide-react';
 import Link from 'next/link';
 import { MapItem } from '../../lib/types';
+import { getWhatsAppUrl } from '../../lib/whatsapp';
 
 interface SelectedExperiencePanelProps {
     item: MapItem;
@@ -78,13 +79,25 @@ export function SelectedExperiencePanel({ item, onClose }: SelectedExperiencePan
                     )}
                 </div>
 
-                <Link
-                    href={`/experiencias/${item.slug}`}
-                    className="inline-flex items-center justify-center gap-3 bg-gray-900 hover:bg-primary text-white hover:text-black px-10 py-4 rounded-full font-sans font-black text-sm uppercase tracking-widest transition-all duration-300 group shadow-xl hover:shadow-primary/20 hover:-translate-y-1"
-                >
-                    Ver experiencia completa
-                    <ChevronRight size={18} className="transform group-hover:translate-x-1 transition-transform" />
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <Link
+                        href={`/experiencias/${item.slug}`}
+                        className="flex-1 inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-6 py-4 rounded-xl font-sans font-bold text-sm tracking-wide transition-all duration-300 shadow-md hover:-translate-y-0.5"
+                    >
+                        Ver detalles
+                    </Link>
+
+                    {item.type === 'experience' && (
+                        <a
+                            href={getWhatsAppUrl(item.title)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 inline-flex items-center justify-center gap-2 bg-[#F4C430] hover:bg-[#E3B520] text-gray-900 border border-yellow-400 px-6 py-4 rounded-xl font-sans font-bold text-sm tracking-wide transition-all duration-300 shadow-md hover:-translate-y-0.5"
+                        >
+                            Reservar
+                        </a>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Experience, AudioPoint, MapItem } from "../../lib/types";
+import { getWhatsAppUrl } from "../../lib/whatsapp";
 import Link from "next/link";
 import { MapPin, Clock, ChevronRight } from "lucide-react";
 
@@ -101,14 +102,25 @@ export default function CulturalMap({ items, onMarkerClick }: CulturalMapProps) 
                                         </span>
                                     )}
                                 </div>
+                                <div className="flex flex-col gap-2 mt-2">
+                                    <Link
+                                        href={`/experiencias/${item.slug}`}
+                                        className="flex items-center justify-center w-full py-3 px-4 bg-gray-900 hover:bg-gray-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 shadow-md"
+                                    >
+                                        Descubrir más
+                                    </Link>
 
-                                <Link
-                                    href={`/experiencias/${item.slug}`}
-                                    className="flex items-center justify-center w-full py-3 px-4 bg-gray-900 hover:bg-primary text-white hover:text-black text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 group shadow-lg"
-                                >
-                                    Descubrir más
-                                    <ChevronRight size={14} className="ml-1.5 transform group-hover:translate-x-1 transition-transform" />
-                                </Link>
+                                    {item.type === 'experience' && (
+                                        <a
+                                            href={getWhatsAppUrl(item.title)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center w-full py-3 px-4 bg-[#F4C430] hover:bg-[#E3B520] text-gray-900 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 shadow-md"
+                                        >
+                                            Reservar
+                                        </a>
+                                    )}
+                                </div>
                             </div>
                         </Popup>
                     </Marker>

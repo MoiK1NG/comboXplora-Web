@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowLeft, Clock, MapPin, Tag } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Tag, MessageCircle } from "lucide-react";
 import { Experience } from "../../lib/types";
+import { getWhatsAppUrl } from "../../lib/whatsapp";
 
 interface ExperienceHeroProps {
     experience: Experience;
@@ -37,7 +38,7 @@ export function ExperienceHero({ experience }: ExperienceHeroProps) {
                             {experience.shortDescription}
                         </p>
 
-                        <div className="flex flex-wrap gap-6">
+                        <div className="flex flex-wrap gap-6 mb-8">
                             <div className="flex items-center bg-white px-4 py-3 rounded-2xl shadow-sm border border-gray-100">
                                 <Clock className="w-5 h-5 text-primary mr-3" />
                                 <div>
@@ -53,6 +54,16 @@ export function ExperienceHero({ experience }: ExperienceHeroProps) {
                                 </div>
                             </div>
                         </div>
+
+                        <a
+                            href={getWhatsAppUrl(experience.title)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center bg-[#F4C430] hover:bg-[#E3B520] text-gray-900 font-extrabold uppercase tracking-widest text-sm px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                        >
+                            <MessageCircle className="w-5 h-5 mr-3" />
+                            Reservar experiencia
+                        </a>
                     </div>
 
                     {/* Image Container */}

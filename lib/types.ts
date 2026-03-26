@@ -16,6 +16,7 @@ export type Experience = {
     includes: string[];
     whatToExpect: string[];
     recommendations: string[];
+    gallery?: string[];
 };
 
 export type AudioPoint = {

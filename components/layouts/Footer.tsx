@@ -36,9 +36,10 @@ export function Footer() {
                 <div>
                     <h4 className="font-outfit font-black text-xl mb-6 text-gray-900 tracking-wide">Legal</h4>
                     <ul className="space-y-4 font-sans text-gray-600 font-medium">
-                        <li><Link href="#" className="hover:text-primary transition-colors">Términos y Condiciones</Link></li>
-                        <li><Link href="#" className="hover:text-primary transition-colors">Política de Privacidad</Link></li>
-                        <li><Link href="#" className="hover:text-primary transition-colors">Políticas de Cancelación</Link></li>
+                        <li><Link href="/terminos-y-condiciones" className="hover:text-primary transition-colors">Términos y Condiciones</Link></li>
+                        <li><Link href="/politica-de-privacidad" className="hover:text-primary transition-colors">Política de Privacidad</Link></li>
+                        <li><Link href="/politicas-de-cancelacion" className="hover:text-primary transition-colors">Políticas de Cancelación</Link></li>
+                        <li><Link href="/tratamiento-de-datos" className="hover:text-primary transition-colors">Tratamiento de Datos</Link></li>
                     </ul>
                 </div>
 
@@ -46,7 +47,7 @@ export function Footer() {
                 <div>
                     <h4 className="font-outfit font-black text-xl mb-6 text-gray-900 tracking-wide">Conecta</h4>
                     <p className="font-sans text-gray-600 mb-6 font-medium">
-                        hola@comboxplora.com
+                        comboxplora@gmail.com
                     </p>
                     <div className="flex space-x-4">
                         <div className="w-12 h-12 rounded-full border border-gray-200 bg-[#FAFAFA] flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all duration-300 cursor-pointer text-gray-600 shadow-sm active:scale-95">

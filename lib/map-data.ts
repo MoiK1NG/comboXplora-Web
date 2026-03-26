@@ -14,7 +14,13 @@ export const experiences: Experience[] = [
         duration: "2 horas",
         lat: 10.9850,
         lng: -74.7820,
-        coverImage: "/imagenes/experiencias/dulces.jpg",
+        coverImage: "/images/authentic/portada_dulces.jpg",
+        gallery: [
+            "/images/experiencias/dulces/gallery/1.jpg",
+            "/images/experiencias/dulces/gallery/2.jpg",
+            "/images/experiencias/dulces/gallery/3.jpg",
+            "/images/experiencias/dulces/gallery/4.jpg"
+        ],
         fullDescription: "Sumérgete en el corazón de Barrio Abajo y descubre los secretos custodiados por generaciones de matronas. En esta experiencia sensorial, aprenderás la alquimia de transformar frutas locales en joyas dulces, mientras escuchas relatos sobre la resiliencia y alegría de nuestra gente.",
         includes: [
             "Degustación de dulces típicos",
@@ -48,7 +54,13 @@ export const experiences: Experience[] = [
         duration: "3 horas",
         lat: 10.9750,
         lng: -74.7800,
-        coverImage: "/imagenes/experiencias/mascaras.jpg",
+        coverImage: "/images/authentic/portada_mascaras.jpg",
+        gallery: [
+            "/images/experiencias/mascaras/gallery/1.jpg",
+            "/images/experiencias/mascaras/gallery/2.jpg",
+            "/images/experiencias/mascaras/gallery/3.jpg",
+            "/images/experiencias/mascaras/gallery/4.jpg"
+        ],
         fullDescription: "El Carnaval no es solo baile, es un legado visual. En el histórico barrio de San Roque, artesanos maestros te enseñarán a moldear y pintar las icónicas máscaras de Galapa y el Congo. Una oportunidad única para conectar con la simbología de nuestra fiesta más grande.",
         includes: [
             "Moldes de barro y papel maché",
@@ -81,7 +93,13 @@ export const experiences: Experience[] = [
         duration: "2 horas",
         lat: 10.9500,
         lng: -74.8050,
-        coverImage: "/imagenes/experiencias/turbantes.jpg",
+        coverImage: "/images/authentic/portada_turbantes.jpg",
+        gallery: [
+            "/images/experiencias/turbantes/gallery/1.jpg",
+            "/images/experiencias/turbantes/gallery/2.jpg",
+            "/images/experiencias/turbantes/gallery/3.jpg",
+            "/images/experiencias/turbantes/gallery/4.jpg"
+        ],
         fullDescription: "El turbante es corona, identidad y resistencia. En este taller aprenderás no solo los complejos amarres que realzan la belleza caribeña, sino también la historia de comunicación y empoderamiento que estas telas guardan. Una experiencia de reafirmación cultural.",
         includes: [
             "Tela de alta calidad para el taller",
@@ -113,7 +131,13 @@ export const experiences: Experience[] = [
         duration: "4 horas",
         lat: 10.9785,
         lng: -74.7813,
-        coverImage: "/imagenes/experiencias/macondo.jpg",
+        coverImage: "/images/authentic/portada_macondo.jpg",
+        gallery: [
+            "/images/experiencias/macondo/gallery/1.jpg",
+            "/images/experiencias/macondo/gallery/2.jpg",
+            "/images/experiencias/macondo/gallery/3.jpg",
+            "/images/experiencias/macondo/gallery/4.jpg"
+        ],
         fullDescription: "Barranquilla fue el laboratorio creativo de Gabo. Recorre los lugares que inspiraron pasajes de 'Cien años de soledad' y 'El amor en los tiempos del cólera'. Desde la antigua redacción del Heraldo hasta la Cueva, revive la atmósfera que dio vida al Realismo Mágico.",
         includes: [
             "Guía especializado en literatura",
@@ -147,7 +171,13 @@ export const experiences: Experience[] = [
         duration: "3 horas",
         lat: 10.9650,
         lng: -74.7750,
-        coverImage: "/imagenes/experiencias/picotera.jpg",
+        coverImage: "/images/authentic/portada_picos.jpg",
+        gallery: [
+            "/images/experiencias/picotera/gallery/1.jpg",
+            "/images/experiencias/picotera/gallery/2.jpg",
+            "/images/experiencias/picotera/gallery/3.jpg",
+            "/images/experiencias/picotera/gallery/4.jpg"
+        ],
         fullDescription: "El Picó es el centro de gravedad del barrio barranquillero. Entiende esta imponente máquina de sonido desde su arte gráfico hasta su ingeniería sonora. Conoce a los pinchadiscos emblemáticos y déjate llevar por la champeta, la salsa y los ritmos africanos que solo suenan aquí.",
         includes: [
             "Visita a un taller de decoración de picós",

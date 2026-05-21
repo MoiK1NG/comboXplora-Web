@@ -3,6 +3,7 @@
 import React from 'react';
 import { MapPin, Clock, ChevronRight, X } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapItem } from '../../lib/types';
 import { getWhatsAppUrl } from '../../lib/whatsapp';
 
@@ -19,6 +20,17 @@ export function SelectedExperiencePanel({ item, onClose }: SelectedExperiencePan
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
                     <span className="text-gray-300 font-outfit font-black text-4xl opacity-20 uppercase tracking-tighter">ComboXplora</span>
                 </div>
+
+                {item.coverImage && (
+                    <Image
+                        src={item.coverImage}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        priority
+                    />
+                )}
 
                 <button
                     onClick={onClose}

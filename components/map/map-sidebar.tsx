@@ -68,11 +68,11 @@ export function MapSidebar({ item, onClose }: MapSidebarProps) {
                     <div className="mt-6 flex flex-col gap-4">
                         <div className="flex items-center gap-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                             <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                                <span className="text-gray-500 font-bold text-xs">{item.narrator.charAt(0)}</span>
+                                <span className="text-gray-500 font-bold text-xs">{item.narrator?.charAt(0) || ""}</span>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-xs text-gray-500">Narrador</span>
-                                <span className="font-medium text-gray-900">{item.narrator}</span>
+                                <span className="font-medium text-gray-900">{item.narrator || ""}</span>
                             </div>
                         </div>
 

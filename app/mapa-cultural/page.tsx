@@ -4,8 +4,8 @@ import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { MapFilters } from "../../components/map/map-filters";
 import { MapLegend } from "../../components/map/map-legend";
-import { experiences, audioPoints } from "../../lib/map-data";
 import { MapItem } from "../../lib/types";
+import mapPointsRaw from "../../data/mapa-cultural.json";
 import { SelectedExperiencePanel } from "../../components/map/selected-experience-panel";
 import Link from "next/link";
 import { ArrowLeft, Map as MapIcon, Info, Users, Heart, Star, ChevronRight, Filter, MousePointerClick } from "lucide-react";
@@ -23,14 +23,14 @@ const CulturalMap = dynamic(() => import("../../components/map/cultural-map"), {
     ),
 });
 
-type FilterType = "Todas" | "Gastronomía" | "Arte" | "Literatura" | "Música" | "Comunidad";
+type FilterType = "Todas" | "Gastronomía" | "Música" | "Tradición" | "Arte" | "Comunidad" | "Naturaleza";
 
 export default function MapaCulturalPage() {
     const [filter, setFilter] = useState<FilterType>("Todas");
     const [selectedItem, setSelectedItem] = useState<MapItem | null>(null);
 
     const allItems: MapItem[] = useMemo(() => {
-        return [...experiences, ...audioPoints];
+        return mapPointsRaw as MapItem[];
     }, []);
 
     const filteredItems = useMemo(() => {

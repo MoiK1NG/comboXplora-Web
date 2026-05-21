@@ -20,9 +20,8 @@ export function Navbar() {
         { name: 'Inicio', href: '/' },
         { name: 'Experiencias', href: '/experiencias' },
         { name: 'Mapa Cultural', href: '/mapa-cultural' },
-        { name: 'Nosotros', href: '/#nosotros' },
-        { name: 'Impacto', href: '/#impacto' },
-        { name: 'Contacto', href: '#contacto' },
+        { name: 'Hacedores', href: '/hacedores' },
+        { name: 'Postular', href: '/postula-tu-experiencia' },
     ];
 
     return (

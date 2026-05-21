@@ -25,10 +25,10 @@ export function Footer() {
                 <div>
                     <h4 className="font-outfit font-black text-xl mb-6 text-gray-900 tracking-wide">Plataforma</h4>
                     <ul className="space-y-4 font-sans text-gray-600 font-medium">
-                        <li><Link href="#como-funciona" className="hover:text-primary transition-colors">Cómo Funciona</Link></li>
-                        <li><Link href="#experiencias" className="hover:text-primary transition-colors">Experiencias</Link></li>
-                        <li><Link href="#impacto" className="hover:text-primary transition-colors">Impacto Social</Link></li>
-                        <li><Link href="#comunidad" className="hover:text-primary transition-colors">Comunidad</Link></li>
+                        <li><Link href="/experiencias" className="hover:text-primary transition-colors">Catálogo de Experiencias</Link></li>
+                        <li><Link href="/mapa-cultural" className="hover:text-primary transition-colors">Mapa Cultural</Link></li>
+                        <li><Link href="/hacedores" className="hover:text-primary transition-colors">Hacedores Locales</Link></li>
+                        <li><Link href="/postula-tu-experiencia" className="hover:text-primary transition-colors">Postula tu Experiencia</Link></li>
                     </ul>
                 </div>
 

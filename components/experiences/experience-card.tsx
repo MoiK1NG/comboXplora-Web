@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Experience } from "../../lib/types";
 import { Clock, MapPin, ChevronRight } from "lucide-react";
 
@@ -10,15 +11,18 @@ export function ExperienceCard({ experience }: ExperienceCardProps) {
     return (
         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full">
             {/* Image Container */}
-            <div className="relative h-56 overflow-hidden">
-                <div className="absolute inset-0 bg-gray-200">
-                    {/* Placeholder for real image */}
-                    <div className="w-full h-full bg-[#F4C430]/10 flex items-center justify-center text-gray-400">
-                        [Imagen: {experience.coverImage.split('/').pop()}]
-                    </div>
-                </div>
-                <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[10px] font-bold text-gray-800 uppercase tracking-widest">
+            <div className="relative h-56 overflow-hidden bg-gray-50">
+                {experience.coverImage && (
+                    <Image
+                        src={experience.coverImage}
+                        alt={experience.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                )}
+                <div className="absolute top-4 left-4 z-10">
+                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[10px] font-bold text-gray-800 uppercase tracking-widest shadow-sm">
                         {experience.categories[0]}
                     </span>
                 </div>

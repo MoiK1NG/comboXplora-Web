@@ -33,4 +33,21 @@ export type AudioPoint = {
     audioUrl: string;
 };
 
-export type MapItem = Experience | AudioPoint;
+export type MapItem = {
+    id: string;
+    title: string;
+    slug: string;
+    type: "experience" | "audio";
+    categories: string[];
+    shortDescription: string;
+    neighborhood: string;
+    locationLabel?: string;
+    meetingPoint?: string;
+    duration?: string;
+    lat: number;
+    lng: number;
+    coverImage: string;
+    tags?: string[];
+    narrator?: string;
+    audioUrl?: string;
+};

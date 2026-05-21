@@ -1,11 +1,11 @@
-type FilterType = "Todas" | "Gastronomía" | "Arte" | "Literatura" | "Música" | "Comunidad";
+type FilterType = "Todas" | "Gastronomía" | "Música" | "Tradición" | "Arte" | "Comunidad" | "Naturaleza";
 
 interface MapFiltersProps {
     currentFilter: FilterType;
     setFilter: (filter: FilterType) => void;
 }
 
-const CATEGORIES: FilterType[] = ["Todas", "Gastronomía", "Arte", "Literatura", "Música", "Comunidad"];
+const CATEGORIES: FilterType[] = ["Todas", "Gastronomía", "Música", "Tradición", "Arte", "Comunidad", "Naturaleza"];
 
 export function MapFilters({ currentFilter, setFilter }: MapFiltersProps) {
     return (

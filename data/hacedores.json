@@ -1,0 +1,132 @@
+[
+  {
+    "id": "hac-1",
+    "name": "Doña Lidia",
+    "slug": "dona-lidia",
+    "profileImage": "/images/authentic/avatar_2.jpg",
+    "coverImage": "/images/authentic/portada_dulces.jpg",
+    "category": "Cocina tradicional",
+    "neighborhood": "Barrio Abajo",
+    "shortDescription": "Matrona y guardiana de la dulcería tradicional afrocolombiana.",
+    "fullStory": "Nacida y criada en el emblemático Barrio Abajo, Doña Lidia heredó el arte del fuego y el azúcar de su abuela. Desde hace más de 40 años, transforma frutas locales como la guayaba, el coco y el ñame en manjares que cuentan historias de resistencia y alegría. Para ella, cocinar dulces no es solo un oficio, sino un ritual sagrado de conexión familiar y preservación del patrimonio inmaterial del Caribe colombiano.",
+    "gallery": [
+      "/images/experiencias/dulces/gallery/1.jpg",
+      "/images/experiencias/dulces/gallery/2.jpg",
+      "/images/experiencias/dulces/gallery/3.jpg",
+      "/images/experiencias/dulces/gallery/4.jpg"
+    ],
+    "instagram": "https://instagram.com/comboxplora",
+    "whatsapp": "573122475789",
+    "specialties": [
+      "Dulces de coco y ñame",
+      "Enyucado tradicional",
+      "Técnicas de cocción lenta en leña",
+      "Narración de relatos ancestrales"
+    ],
+    "experiences": ["exp-1"]
+  },
+  {
+    "id": "hac-2",
+    "name": "Maestro Alfonso",
+    "slug": "maestro-alfonso",
+    "profileImage": "/images/authentic/avatar_1.jpg",
+    "coverImage": "/images/authentic/portada_mascaras.jpg",
+    "category": "Artesanía",
+    "neighborhood": "San Roque",
+    "shortDescription": "Maestro artesano del Carnaval y tallador experto de madera.",
+    "fullStory": "El Maestro Alfonso es una leyenda viviente en el barrio San Roque. Con una habilidad prodigiosa, moldea la historia del Carnaval de Barranquilla en madera de ceiba y papel maché. Sus máscaras de toros, tigres y congos han recorrido el mundo, pero su mayor orgullo es enseñar a las nuevas generaciones el significado místico detrás de cada color y forma que da vida a las carnestolendas.",
+    "gallery": [
+      "/images/experiencias/mascaras/gallery/1.jpg",
+      "/images/experiencias/mascaras/gallery/2.jpg",
+      "/images/experiencias/mascaras/gallery/3.jpg",
+      "/images/experiencias/mascaras/gallery/4.jpg"
+    ],
+    "instagram": "https://instagram.com/comboxplora",
+    "whatsapp": "573122475789",
+    "specialties": [
+      "Tallado en madera de ceiba",
+      "Moldeado en papel maché",
+      "Pintura con simbología folclórica",
+      "Diseño de personajes de Carnaval"
+    ],
+    "experiences": ["exp-2"]
+  },
+  {
+    "id": "hac-3",
+    "name": "Nayibe",
+    "slug": "nayibe",
+    "profileImage": "/images/authentic/avatar_1.jpg",
+    "coverImage": "/images/authentic/portada_turbantes.jpg",
+    "category": "Patrimonio",
+    "neighborhood": "El Bosque",
+    "shortDescription": "Diseñadora de identidad y tejedora de memorias afrocaribeñas.",
+    "fullStory": "Nayibe ha convertido el turbante en un lienzo de dignidad y resistencia cultural. Su labor en el Centro Comunitario Afro del barrio El Bosque ha transformado la vida de decenas de mujeres. Con cada doblez, cada color y cada nudo, Nayibe enseña que el turbante no es solo estética, sino un código de comunicación ancestral y una corona que resalta la belleza e historia de la herencia africana en nuestro Caribe.",
+    "gallery": [
+      "/images/experiencias/turbantes/gallery/1.jpg",
+      "/images/experiencias/turbantes/gallery/2.jpg",
+      "/images/experiencias/turbantes/gallery/3.jpg",
+      "/images/experiencias/turbantes/gallery/4.jpg"
+    ],
+    "instagram": "https://instagram.com/comboxplora",
+    "whatsapp": "573122475789",
+    "specialties": [
+      "Estilos de amarre de turbante",
+      "Historia de la estética afrocaribeña",
+      "Simbología de estampados africanos",
+      "Tejido y empoderamiento comunitario"
+    ],
+    "experiences": ["exp-3"]
+  },
+  {
+    "id": "hac-4",
+    "name": "Profesor Gabriel",
+    "slug": "profesor-gabriel",
+    "profileImage": "/images/authentic/avatar_2.jpg",
+    "coverImage": "/images/authentic/portada_macondo.jpg",
+    "category": "Narración",
+    "neighborhood": "Centro",
+    "shortDescription": "Historiador y apasionado de la literatura del realismo mágico.",
+    "fullStory": "El Profesor Gabriel conoce cada rincón del centro de Barranquilla como la palma de su mano. Se ha dedicado a investigar la vida del nobel Gabriel García Márquez durante su estancia en la Arenosa, cuando formó parte del mítico Grupo de Barranquilla. Su voz cálida y erudita transporta a los exploradores a un viaje en el tiempo donde el realismo mágico cobra vida en las esquinas de la ciudad.",
+    "gallery": [
+      "/images/experiencias/macondo/gallery/1.jpg",
+      "/images/experiencias/macondo/gallery/2.jpg",
+      "/images/experiencias/macondo/gallery/3.jpg",
+      "/images/experiencias/macondo/gallery/4.jpg"
+    ],
+    "instagram": "https://instagram.com/comboxplora",
+    "whatsapp": "573122475789",
+    "specialties": [
+      "Historia del Grupo de Barranquilla",
+      "Geografía literaria de Gabriel García Márquez",
+      "Análisis de literatura hispanoamericana",
+      "Guiado urbano histórico"
+    ],
+    "experiences": ["exp-4"]
+  },
+  {
+    "id": "hac-5",
+    "name": "Dj El Gran Freddy",
+    "slug": "dj-el-gran-freddy",
+    "profileImage": "/images/authentic/avatar_1.jpg",
+    "coverImage": "/images/authentic/portada_picos.jpg",
+    "category": "Música",
+    "neighborhood": "Rebolo",
+    "shortDescription": "Pinchadiscos legendario y artesano gráfico de la cultura picotera.",
+    "fullStory": "En las vibrantes calles de Rebolo, Dj El Gran Freddy ha comandado el sonido de los picós tradicionales más grandes de la costa. Con su inmensa colección de vinilos y su profundo conocimiento de los ritmos africanos, Freddy mantiene viva la tradición picotera como manifestación artística y social. Su patio es un templo del ritmo, donde la gráfica popular caribeña y la potencia sonora se unen para hacer bailar el alma.",
+    "gallery": [
+      "/images/experiencias/picotera/gallery/1.jpg",
+      "/images/experiencias/picotera/gallery/2.jpg",
+      "/images/experiencias/picotera/gallery/3.jpg",
+      "/images/experiencias/picotera/gallery/4.jpg"
+    ],
+    "instagram": "https://instagram.com/comboxplora",
+    "whatsapp": "573122475789",
+    "specialties": [
+      "Curaduría de vinilos de salsa y música africana",
+      "Ingeniería acústica de picós tradicionales",
+      "Pintura e ilustración de gráfica popular",
+      "Técnicas de mezcla analógica"
+    ],
+    "experiences": ["exp-5"]
+  }
+]

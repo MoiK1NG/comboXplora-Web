@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "../../components/layouts/Navbar";
 import { Footer } from "../../components/layouts/Footer";
 import { Search, MapPin, Sparkles, BookOpen, ChevronRight, User } from "lucide-react";
 import hacedoresRaw from "../../data/hacedores.json";
+import { fetchHacedores, HacedorData } from "../../lib/db";
 
 type HostCategory = 
     | "Todos" 
@@ -18,23 +19,6 @@ type HostCategory =
     | "Tradición oral" 
     | "Patrimonio" 
     | "Arte urbano";
-
-interface HacedorData {
-    id: string;
-    name: string;
-    slug: string;
-    profileImage: string;
-    coverImage: string;
-    category: string;
-    neighborhood: string;
-    shortDescription: string;
-    fullStory: string;
-    gallery: string[];
-    instagram: string;
-    whatsapp: string;
-    specialties: string[];
-    experiences: string[];
-}
 
 const CATEGORIES: HostCategory[] = [
     "Todos",
@@ -48,11 +32,18 @@ const CATEGORIES: HostCategory[] = [
     "Arte urbano",
 ];
 
-const hacedoresList = hacedoresRaw as HacedorData[];
-
 export default function HacedoresDirectoryPage() {
+    const [hacedoresList, setHacedoresList] = useState<HacedorData[]>(hacedoresRaw as HacedorData[]);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<HostCategory>("Todos");
+
+    useEffect(() => {
+        async function loadHacedores() {
+            const data = await fetchHacedores();
+            setHacedoresList(data);
+        }
+        loadHacedores();
+    }, []);
 
     // Filter hacedores based on search and category
     const filteredHacedores = useMemo(() => {

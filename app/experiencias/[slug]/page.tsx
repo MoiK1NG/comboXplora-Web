@@ -2,7 +2,7 @@ import { Navbar } from "../../../components/layouts/Navbar";
 import { Footer } from "../../../components/layouts/Footer";
 import { ExperienceHero } from "../../../components/experiences/experience-hero";
 import { ExperienceDetails } from "../../../components/experiences/experience-details";
-import { experiences } from "../../../lib/map-data";
+import { fetchExperienceBySlug } from "../../../lib/db";
 import { notFound } from "next/navigation";
 
 export default async function ExperienciaDetalle({
@@ -11,7 +11,7 @@ export default async function ExperienciaDetalle({
     params: Promise<{ slug: string }>;
 }) {
     const resolvedParams = await params;
-    const exp = experiences.find((e) => e.slug === resolvedParams.slug);
+    const exp = await fetchExperienceBySlug(resolvedParams.slug);
 
     if (!exp) {
         notFound();

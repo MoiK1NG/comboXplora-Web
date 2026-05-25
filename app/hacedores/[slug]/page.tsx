@@ -1,31 +1,11 @@
 import { Navbar } from "../../../components/layouts/Navbar";
 import { Footer } from "../../../components/layouts/Footer";
-import { experiences } from "../../../lib/map-data";
-import hacedoresRaw from "../../../data/hacedores.json";
+import { fetchHacedorBySlug, fetchExperiences } from "../../../lib/db";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Instagram, Phone, Award, BookOpen, Star, Sparkles, ArrowLeft } from "lucide-react";
 import { ExperienceCard } from "../../../components/experiences/experience-card";
-
-interface HacedorData {
-    id: string;
-    name: string;
-    slug: string;
-    profileImage: string;
-    coverImage: string;
-    category: string;
-    neighborhood: string;
-    shortDescription: string;
-    fullStory: string;
-    gallery: string[];
-    instagram: string;
-    whatsapp: string;
-    specialties: string[];
-    experiences: string[];
-}
-
-const hacedoresList = hacedoresRaw as HacedorData[];
 
 export default async function HacedorPerfilPage({
     params,
@@ -33,14 +13,15 @@ export default async function HacedorPerfilPage({
     params: Promise<{ slug: string }>;
 }) {
     const resolvedParams = await params;
-    const host = hacedoresList.find((h) => h.slug === resolvedParams.slug);
+    const host = await fetchHacedorBySlug(resolvedParams.slug);
 
     if (!host) {
         notFound();
     }
 
     // Find full experiences hosted by this hacedor
-    const hostedExperiences = experiences.filter((exp) => 
+    const allExperiences = await fetchExperiences();
+    const hostedExperiences = allExperiences.filter((exp) => 
         host.experiences.includes(exp.id)
     );
 

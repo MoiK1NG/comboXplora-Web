@@ -41,8 +41,8 @@ export default function CulturalMap({ items, onMarkerClick }: CulturalMapProps) 
         );
     }
 
-    const createCustomIcon = (type: "experience" | "audio") => {
-        const color = type === "experience" ? "#F4C430" : "#2A9D8F";
+    const createCustomIcon = (type: "experience" | "audio" | "relato") => {
+        const color = type === "experience" ? "#F4C430" : type === "relato" ? "#8B5CF6" : "#2A9D8F";
 
         const html = `
       <div style="background-color: ${color}; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); display: flex; align-items: center; justify-content: center; transform: scale(1); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);" class="hover:scale-125 hover:shadow-2xl">

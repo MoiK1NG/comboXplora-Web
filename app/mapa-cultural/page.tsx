@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { MapFilters } from "../../components/map/map-filters";
 import { MapLegend } from "../../components/map/map-legend";
 import { MapItem } from "../../lib/types";
 import mapPointsRaw from "../../data/mapa-cultural.json";
+import { fetchMapPoints } from "../../lib/db";
 import { SelectedExperiencePanel } from "../../components/map/selected-experience-panel";
 import Link from "next/link";
 import { ArrowLeft, Map as MapIcon, Info, Users, Heart, Star, ChevronRight, Filter, MousePointerClick } from "lucide-react";
@@ -28,9 +29,14 @@ type FilterType = "Todas" | "Gastronomía" | "Música" | "Tradición" | "Arte" |
 export default function MapaCulturalPage() {
     const [filter, setFilter] = useState<FilterType>("Todas");
     const [selectedItem, setSelectedItem] = useState<MapItem | null>(null);
+    const [allItems, setAllItems] = useState<MapItem[]>(mapPointsRaw as MapItem[]);
 
-    const allItems: MapItem[] = useMemo(() => {
-        return mapPointsRaw as MapItem[];
+    useEffect(() => {
+        async function loadMapPoints() {
+            const data = await fetchMapPoints();
+            setAllItems(data);
+        }
+        loadMapPoints();
     }, []);
 
     const filteredItems = useMemo(() => {

@@ -1,9 +1,11 @@
 import { Navbar } from "../../components/layouts/Navbar";
 import { Footer } from "../../components/layouts/Footer";
 import { ExperienceCard } from "../../components/experiences/experience-card";
-import { experiences } from "../../lib/map-data";
+import { fetchExperiences } from "../../lib/db";
 
-export default function ExperienciasPage() {
+export default async function ExperienciasPage() {
+    const experiences = await fetchExperiences();
+
     return (
         <div className="min-h-screen flex flex-col bg-white">
             <Navbar />

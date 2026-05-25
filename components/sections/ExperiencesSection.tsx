@@ -1,21 +1,21 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SectionHeader } from '../ui/SectionHeader';
 import { ExperienceCard } from '../ui/ExperienceCard';
 import { Button } from '../ui/Button';
+import { fetchExperiences } from '../../lib/db';
 
 type CategoryType = 'Todas' | 'Cultura' | 'Gastronomía' | 'Música' | 'Historia' | 'Comunidad';
 
 export function ExperiencesSection() {
     const [activeCategory, setActiveCategory] = useState<CategoryType>('Todas');
-
     const categories: CategoryType[] = ['Todas', 'Cultura', 'Gastronomía', 'Música', 'Historia'];
 
-    type ExperienceCardType = Omit<React.ComponentProps<typeof ExperienceCard>, 'key'> & { id: number };
+    type ExperienceCardType = Omit<React.ComponentProps<typeof ExperienceCard>, 'key'> & { id: number | string };
 
-    const experiences: ExperienceCardType[] = [
+    const [experiencesList, setExperiencesList] = useState<ExperienceCardType[]>([
         {
             id: 1,
             slug: "dulces",
@@ -66,9 +66,35 @@ export function ExperiencesSection() {
             duration: "5 horas",
             location: "Las Nieves"
         }
-    ];
+    ]);
 
-    const filtered = activeCategory === 'Todas' ? experiences : experiences.filter(e => e.categories.includes(activeCategory));
+    useEffect(() => {
+        async function loadExperiences() {
+            const dbExps = await fetchExperiences();
+            const mappedExps = dbExps.map(exp => ({
+                id: exp.id,
+                slug: exp.slug,
+                title: exp.title,
+                categories: exp.categories as any[],
+                imageSrc: exp.coverImage,
+                description: exp.shortDescription,
+                duration: exp.duration,
+                location: exp.neighborhood
+            }));
+            setExperiencesList(mappedExps);
+        }
+        loadExperiences();
+    }, []);
+
+    const filtered = activeCategory === 'Todas'
+        ? experiencesList
+        : experiencesList.filter(e => {
+            const cats = e.categories as string[];
+            if (activeCategory === 'Cultura') {
+                return cats.some(cat => ['Arte', 'Literatura', 'Moda y Tradición', 'Tradición', 'Cultura'].includes(cat));
+            }
+            return cats.some(cat => cat === (activeCategory as string));
+        });
 
     return (
         <section id="experiencias" className="py-28 bg-[#fafafa]">

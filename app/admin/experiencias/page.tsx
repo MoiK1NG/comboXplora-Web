@@ -5,38 +5,83 @@ import { createClient } from "../../../lib/supabase-client";
 import { fetchExperiences } from "../../../lib/db";
 import type { Experience } from "../../../lib/types";
 import {
-    Plus,
-    Pencil,
-    Trash2,
-    Eye,
-    EyeOff,
-    X,
-    Save,
-    Loader2,
-    ExternalLink,
-    Search,
-    ChevronDown,
-    ChevronUp,
-    Star,
+    generateId, slugify,
+    CATEGORIES, DURATIONS, NEIGHBORHOODS,
+} from "../../../lib/admin-utils";
+import {
+    Plus, Pencil, Trash2, Eye, EyeOff, X, Save,
+    Loader2, ExternalLink, Search, ChevronDown, ChevronUp,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────
-// Toast notification helper
+// Toast
 // ─────────────────────────────────────────────
 function Toast({ message, type, onDone }: { message: string; type: "ok" | "err"; onDone: () => void }) {
-    useEffect(() => {
-        const t = setTimeout(onDone, 3500);
-        return () => clearTimeout(t);
-    }, [onDone]);
+    useEffect(() => { const t = setTimeout(onDone, 3500); return () => clearTimeout(t); }, [onDone]);
     return (
-        <div className={`fixed bottom-6 right-6 z-[200] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl text-sm font-semibold text-white transition-all ${type === "ok" ? "bg-emerald-600" : "bg-red-600"}`}>
+        <div className={`fixed bottom-6 right-6 z-[200] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl text-sm font-semibold text-white ${type === "ok" ? "bg-emerald-600" : "bg-red-600"}`}>
             {message}
         </div>
     );
 }
 
 // ─────────────────────────────────────────────
-// Empty form state
+// Section divider
+// ─────────────────────────────────────────────
+function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
+    return (
+        <div className="space-y-4 pt-1">
+            <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-gray-100" />
+                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-gray-400">{title}</span>
+                <div className="h-px flex-1 bg-gray-100" />
+            </div>
+            {children}
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────
+// Category chip picker (multi-select)
+// ─────────────────────────────────────────────
+function CategoryPicker({
+    value, onChange, options,
+}: {
+    value: string;
+    onChange: (v: string) => void;
+    options: readonly string[];
+}) {
+    const selected = value ? value.split(",").map(s => s.trim()).filter(Boolean) : [];
+    function toggle(cat: string) {
+        const next = selected.includes(cat) ? selected.filter(c => c !== cat) : [...selected, cat];
+        onChange(next.join(", "));
+    }
+    return (
+        <div className="flex flex-wrap gap-1.5">
+            {options.map(cat => (
+                <button
+                    key={cat} type="button" onClick={() => toggle(cat)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                        selected.includes(cat)
+                            ? "bg-[#F4C430] text-gray-900 shadow-sm"
+                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    }`}
+                >
+                    {cat}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────
+// Select helper
+// ─────────────────────────────────────────────
+const inputCls = "w-full px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#F4C430]/40 focus:border-[#F4C430] transition-all bg-white";
+const labelCls = "block text-xs font-bold text-gray-600 uppercase tracking-widest mb-1.5";
+
+// ─────────────────────────────────────────────
+// FormState
 // ─────────────────────────────────────────────
 const EMPTY_FORM = {
     id: "",
@@ -59,136 +104,10 @@ const EMPTY_FORM = {
     is_featured: false,
     is_active: true,
 };
-
 type FormState = typeof EMPTY_FORM;
 
 // ─────────────────────────────────────────────
-// Slide-over Modal
-// ─────────────────────────────────────────────
-function ExperienceModal({
-    open,
-    onClose,
-    onSave,
-    initial,
-    isSaving,
-}: {
-    open: boolean;
-    onClose: () => void;
-    onSave: (form: FormState) => Promise<void>;
-    initial: FormState;
-    isSaving: boolean;
-}) {
-    const [form, setForm] = useState<FormState>(initial);
-    useEffect(() => setForm(initial), [initial]);
-
-    const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-        setForm((f) => ({ ...f, [k]: e.target.value }));
-
-    if (!open) return null;
-
-    return (
-        <div className="fixed inset-0 z-[100] flex justify-end">
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative z-10 w-full max-w-xl bg-white h-full overflow-y-auto shadow-2xl flex flex-col">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 sticky top-0 bg-white z-10">
-                    <h2 className="font-outfit text-xl font-black text-gray-900">
-                        {form.id ? "Editar Experiencia" : "Nueva Experiencia"}
-                    </h2>
-                    <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                        <X size={18} />
-                    </button>
-                </div>
-
-                {/* Form body */}
-                <div className="flex-1 px-6 py-6 space-y-5">
-                    {[
-                        { label: "ID (ej: exp-6)", key: "id" as const, disabled: !!form.id && form.id !== "" },
-                        { label: "Título", key: "title" as const },
-                        { label: "Slug (URL: ej. dulces)", key: "slug" as const },
-                        { label: "Categorías (separadas por coma)", key: "categories" as const },
-                        { label: "Duración (ej: 2 horas)", key: "duration" as const },
-                        { label: "Barrio / Vecindario", key: "neighborhood" as const },
-                        { label: "Nombre del lugar", key: "location" as const },
-                        { label: "Punto de encuentro", key: "meeting_point" as const },
-                        { label: "URL imagen principal", key: "image" as const },
-                        { label: "Lat (ej: 10.9850)", key: "lat" as const },
-                        { label: "Lng (ej: -74.7820)", key: "lng" as const },
-                    ].map(({ label, key, disabled }) => (
-                        <div key={key}>
-                            <label className="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-1.5">
-                                {label}
-                            </label>
-                            <input
-                                value={String(form[key])}
-                                onChange={set(key)}
-                                disabled={disabled}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#F4C430]/40 focus:border-[#F4C430] transition-all disabled:bg-gray-50 disabled:text-gray-400"
-                            />
-                        </div>
-                    ))}
-                    {[
-                        { label: "Descripción corta", key: "short_description" as const },
-                        { label: "Descripción completa", key: "full_description" as const },
-                        { label: "Qué incluye (una por línea)", key: "includes" as const },
-                        { label: "Qué esperar (una por línea)", key: "what_to_expect" as const },
-                        { label: "Recomendaciones (una por línea)", key: "recommendations" as const },
-                        { label: "Galería – URLs de imágenes (una por línea)", key: "gallery" as const },
-                    ].map(({ label, key }) => (
-                        <div key={key}>
-                            <label className="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-1.5">
-                                {label}
-                            </label>
-                            <textarea
-                                value={String(form[key])}
-                                onChange={set(key)}
-                                rows={3}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#F4C430]/40 focus:border-[#F4C430] transition-all resize-none"
-                            />
-                        </div>
-                    ))}
-                    <div className="flex items-center gap-4">
-                        {[
-                            { label: "¿Activa?", key: "is_active" as const },
-                            { label: "¿Destacada?", key: "is_featured" as const },
-                        ].map(({ label, key }) => (
-                            <label key={key} className="flex items-center gap-2 cursor-pointer group">
-                                <div
-                                    onClick={() => setForm((f) => ({ ...f, [key]: !f[key] }))}
-                                    className={`w-11 h-6 rounded-full transition-colors duration-200 flex items-center px-0.5 ${form[key] ? "bg-[#F4C430]" : "bg-gray-200"}`}
-                                >
-                                    <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${form[key] ? "translate-x-5" : "translate-x-0"}`} />
-                                </div>
-                                <span className="text-sm font-semibold text-gray-700">{label}</span>
-                            </label>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-5 flex items-center gap-3">
-                    <button
-                        onClick={() => onSave(form)}
-                        disabled={isSaving}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#F4C430] hover:bg-[#E3B520] text-gray-900 font-black text-sm transition-all disabled:opacity-60"
-                    >
-                        {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        {isSaving ? "Guardando..." : "Guardar"}
-                    </button>
-                    <button
-                        onClick={onClose}
-                        className="px-5 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all"
-                    >
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ─────────────────────────────────────────────
-// Helpers to convert between Experience and FormState
+// Convert Experience → FormState (edit mode)
 // ─────────────────────────────────────────────
 function expToForm(e: Experience): FormState {
     return {
@@ -202,24 +121,24 @@ function expToForm(e: Experience): FormState {
         neighborhood: e.neighborhood || "",
         location: e.locationLabel || "",
         meeting_point: e.meetingPoint || "",
-        lat: String(e.lat),
-        lng: String(e.lng),
+        lat: String(e.lat ?? "10.9850"),
+        lng: String(e.lng ?? "-74.7820"),
         image: e.coverImage || "",
         gallery: (e.gallery || []).join("\n"),
         includes: (e.includes || []).join("\n"),
         what_to_expect: (e.whatToExpect || []).join("\n"),
         recommendations: (e.recommendations || []).join("\n"),
-        is_featured: false,
-        is_active: true,
+        is_featured: e.isFeatured ?? false,
+        is_active: e.isActive ?? true,
     };
 }
 
+// ─────────────────────────────────────────────
+// FormState → Supabase payload
+// ─────────────────────────────────────────────
 function formToSupabase(f: FormState) {
     const toArr = (s: string) =>
-        s
-            .split(/[,\n]+/)
-            .map((x) => x.trim())
-            .filter(Boolean);
+        s.split(/[,\n]+/).map(x => x.trim()).filter(Boolean);
     return {
         id: f.id.trim(),
         title: f.title,
@@ -243,6 +162,250 @@ function formToSupabase(f: FormState) {
 }
 
 // ─────────────────────────────────────────────
+// Modal
+// ─────────────────────────────────────────────
+function ExperienceModal({
+    open, onClose, onSave, initial, isSaving, isNew,
+}: {
+    open: boolean;
+    onClose: () => void;
+    onSave: (form: FormState) => Promise<void>;
+    initial: FormState;
+    isSaving: boolean;
+    isNew: boolean;
+}) {
+    const [form, setForm] = useState<FormState>(initial);
+    const [slugManual, setSlugManual] = useState(false);
+
+    useEffect(() => {
+        setForm(initial);
+        // When editing an existing item, don't auto-override the slug
+        setSlugManual(!isNew);
+    }, [initial, isNew]);
+
+    const set = (k: keyof FormState) =>
+        (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+            setForm(f => ({ ...f, [k]: e.target.value }));
+
+    function handleTitleChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const title = e.target.value;
+        setForm(f => ({
+            ...f,
+            title,
+            ...(isNew && !slugManual ? { slug: slugify(title) } : {}),
+        }));
+    }
+
+    if (!open) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex justify-end">
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative z-10 w-full max-w-xl bg-white h-full overflow-y-auto shadow-2xl flex flex-col">
+
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 sticky top-0 bg-white z-10">
+                    <div>
+                        <h2 className="font-outfit text-xl font-black text-gray-900">
+                            {isNew ? "Nueva Experiencia" : "Editar Experiencia"}
+                        </h2>
+                        {!isNew && (
+                            <p className="text-xs text-gray-400 font-mono mt-0.5">{form.id}</p>
+                        )}
+                    </div>
+                    <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                        <X size={18} />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 px-6 py-6 space-y-6">
+
+                    {/* ID badge (only on new) */}
+                    {isNew && (
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border border-gray-100">
+                            <span className={labelCls + " mb-0"}>ID</span>
+                            <code className="text-sm font-mono text-gray-700 flex-1">{form.id}</code>
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">auto</span>
+                        </div>
+                    )}
+
+                    {/* ── Básico ── */}
+                    <FormSection title="Información básica">
+                        {/* Título */}
+                        <div>
+                            <label className={labelCls}>Título</label>
+                            <input
+                                value={form.title}
+                                onChange={handleTitleChange}
+                                placeholder="Ej: Taller de Tambores en el Prado"
+                                className={inputCls}
+                            />
+                        </div>
+
+                        {/* Slug */}
+                        <div>
+                            <label className={labelCls}>
+                                Slug (URL)
+                                {isNew && !slugManual && (
+                                    <span className="ml-2 text-[10px] font-bold text-gray-400 normal-case tracking-normal">
+                                        · auto desde título
+                                    </span>
+                                )}
+                            </label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">/experiencias/</span>
+                                <input
+                                    value={form.slug}
+                                    onChange={e => { setSlugManual(true); set("slug")(e); }}
+                                    placeholder="taller-de-tambores"
+                                    className={inputCls + " pl-[8.5rem]"}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Categorías */}
+                        <div>
+                            <label className={labelCls}>Categorías</label>
+                            <CategoryPicker
+                                value={form.categories}
+                                onChange={v => setForm(f => ({ ...f, categories: v }))}
+                                options={CATEGORIES}
+                            />
+                        </div>
+
+                        {/* Duración */}
+                        <div>
+                            <label className={labelCls}>Duración</label>
+                            <select value={form.duration} onChange={set("duration")} className={inputCls}>
+                                <option value="">Seleccionar duración…</option>
+                                {DURATIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                            </select>
+                        </div>
+
+                        {/* Barrio */}
+                        <div>
+                            <label className={labelCls}>Barrio / Vecindario</label>
+                            <select value={form.neighborhood} onChange={set("neighborhood")} className={inputCls}>
+                                <option value="">Seleccionar barrio…</option>
+                                {NEIGHBORHOODS.map(n => <option key={n} value={n}>{n}</option>)}
+                            </select>
+                        </div>
+                    </FormSection>
+
+                    {/* ── Ubicación ── */}
+                    <FormSection title="Ubicación">
+                        <div>
+                            <label className={labelCls}>Nombre del lugar</label>
+                            <input value={form.location} onChange={set("location")}
+                                placeholder="Ej: Casa Cultural El Prado" className={inputCls} />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Punto de encuentro</label>
+                            <input value={form.meeting_point} onChange={set("meeting_point")}
+                                placeholder="Ej: Entrada principal" className={inputCls} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className={labelCls}>Latitud</label>
+                                <input value={form.lat} onChange={set("lat")}
+                                    placeholder="10.9850" className={inputCls} />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Longitud</label>
+                                <input value={form.lng} onChange={set("lng")}
+                                    placeholder="-74.7820" className={inputCls} />
+                            </div>
+                        </div>
+                    </FormSection>
+
+                    {/* ── Contenido ── */}
+                    <FormSection title="Contenido">
+                        {([
+                            { label: "Descripción corta", key: "short_description" as const, rows: 2, ph: "Una frase que invite a vivir esta experiencia…" },
+                            { label: "Descripción completa", key: "full_description" as const, rows: 4, ph: "Detalla la experiencia con toda la riqueza cultural…" },
+                            { label: "Qué incluye (una por línea)", key: "includes" as const, rows: 3, ph: "Guía local\nMaterial didáctico" },
+                            { label: "Qué esperar (una por línea)", key: "what_to_expect" as const, rows: 3, ph: "Música en vivo\nDegustación de platos típicos" },
+                            { label: "Recomendaciones (una por línea)", key: "recommendations" as const, rows: 2, ph: "Ropa cómoda\nCámara fotográfica" },
+                        ] as { label: string; key: keyof FormState; rows: number; ph: string }[]).map(({ label, key, rows, ph }) => (
+                            <div key={key}>
+                                <label className={labelCls}>{label}</label>
+                                <textarea
+                                    value={String(form[key])}
+                                    onChange={set(key)}
+                                    rows={rows}
+                                    placeholder={ph}
+                                    className={inputCls + " resize-none"}
+                                />
+                            </div>
+                        ))}
+                    </FormSection>
+
+                    {/* ── Imágenes ── */}
+                    <FormSection title="Imágenes">
+                        <div>
+                            <label className={labelCls}>URL imagen principal</label>
+                            <input value={form.image} onChange={set("image")}
+                                placeholder="https://..." className={inputCls} />
+                            {form.image && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={form.image} alt="" className="mt-2 w-full h-32 object-cover rounded-xl bg-gray-100" />
+                            )}
+                        </div>
+                        <div>
+                            <label className={labelCls}>Galería — URLs (una por línea)</label>
+                            <textarea
+                                value={form.gallery} onChange={set("gallery")} rows={4}
+                                placeholder="https://ejemplo.com/foto1.jpg&#10;https://ejemplo.com/foto2.jpg"
+                                className={inputCls + " resize-none"}
+                            />
+                        </div>
+                    </FormSection>
+
+                    {/* ── Opciones ── */}
+                    <FormSection title="Opciones">
+                        <div className="flex items-center gap-6">
+                            {([
+                                { label: "¿Activa?", key: "is_active" as const },
+                                { label: "¿Destacada?", key: "is_featured" as const },
+                            ] as { label: string; key: "is_active" | "is_featured" }[]).map(({ label, key }) => (
+                                <label key={key} className="flex items-center gap-3 cursor-pointer">
+                                    <div
+                                        onClick={() => setForm(f => ({ ...f, [key]: !f[key] }))}
+                                        className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${form[key] ? "bg-[#F4C430]" : "bg-gray-200"}`}
+                                    >
+                                        <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${form[key] ? "translate-x-5" : "translate-x-0"}`} />
+                                    </div>
+                                    <span className="text-sm font-semibold text-gray-700">{label}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </FormSection>
+                </div>
+
+                {/* Footer */}
+                <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-5 flex items-center gap-3">
+                    <button
+                        onClick={() => onSave(form)}
+                        disabled={isSaving}
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#F4C430] hover:bg-[#E3B520] text-gray-900 font-black text-sm transition-all disabled:opacity-60 shadow-sm shadow-[#F4C430]/30"
+                    >
+                        {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                        {isSaving ? "Guardando…" : "Guardar experiencia"}
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="px-5 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────
 // Main Page
 // ─────────────────────────────────────────────
 export default function AdminExperienciasPage() {
@@ -252,11 +415,11 @@ export default function AdminExperienciasPage() {
     const [visFilter, setVisFilter] = useState<"all" | "active" | "hidden">("all");
     const [modalOpen, setModalOpen] = useState(false);
     const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
+    const [isNew, setIsNew] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: "ok" | "err" } | null>(null);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const supabase = createClient();
-    const canWrite = true;
 
     const load = useCallback(async () => {
         setIsLoading(true);
@@ -269,15 +432,22 @@ export default function AdminExperienciasPage() {
 
     const showToast = (message: string, type: "ok" | "err") => setToast({ message, type });
 
+    function openNew() {
+        setEditForm({ ...EMPTY_FORM, id: generateId("exp") });
+        setIsNew(true);
+        setModalOpen(true);
+    }
+
+    function openEdit(exp: Experience) {
+        setEditForm(expToForm(exp));
+        setIsNew(false);
+        setModalOpen(true);
+    }
+
     async function handleSave(form: FormState) {
-        if (!canWrite) {
-            showToast("Supabase no configurado. No se pueden guardar cambios.", "err");
-            return;
-        }
-        if (!form.id || !form.title || !form.slug) {
-            showToast("ID, Título y Slug son obligatorios.", "err");
-            return;
-        }
+        if (!form.title.trim()) { showToast("El título es obligatorio.", "err"); return; }
+        if (!form.slug.trim())  { showToast("El slug es obligatorio.", "err"); return; }
+        if (!form.id.trim())    { showToast("Error: ID no generado.", "err"); return; }
         setIsSaving(true);
         try {
             const payload = formToSupabase(form);
@@ -294,7 +464,6 @@ export default function AdminExperienciasPage() {
     }
 
     async function handleToggle(exp: Experience) {
-        if (!canWrite) { showToast("Supabase no configurado.", "err"); return; }
         const { error } = await supabase
             .from("experiencias")
             .update({ is_active: !exp.isActive })
@@ -307,7 +476,6 @@ export default function AdminExperienciasPage() {
     }
 
     async function handleDelete(id: string) {
-        if (!canWrite) { showToast("Supabase no configurado.", "err"); return; }
         if (!confirm("¿Eliminar esta experiencia? Esta acción no se puede deshacer.")) return;
         const { error } = await supabase.from("experiencias").delete().eq("id", id);
         if (error) showToast(error.message, "err");
@@ -317,10 +485,12 @@ export default function AdminExperienciasPage() {
     const activeCount = experiences.filter(e => e.isActive !== false).length;
     const hiddenCount = experiences.filter(e => e.isActive === false).length;
 
-    const filtered = experiences.filter((e) => {
+    const filtered = experiences.filter(e => {
+        const q = search.toLowerCase();
         const matchesSearch =
-            e.title.toLowerCase().includes(search.toLowerCase()) ||
-            e.neighborhood?.toLowerCase().includes(search.toLowerCase());
+            e.title.toLowerCase().includes(q) ||
+            e.neighborhood?.toLowerCase().includes(q) ||
+            e.categories?.some(c => c.toLowerCase().includes(q));
         const matchesVis =
             visFilter === "all" ? true :
             visFilter === "active" ? e.isActive !== false :
@@ -330,37 +500,32 @@ export default function AdminExperienciasPage() {
 
     return (
         <div className="max-w-5xl mx-auto space-y-8">
-            {/* Page Header */}
+            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="font-outfit text-2xl font-black text-gray-900">Experiencias</h1>
                     <p className="text-sm text-gray-400 mt-0.5">
-                        {experiences.filter(e => e.isActive !== false).length} activas · {experiences.filter(e => e.isActive === false).length} ocultas
+                        {activeCount} activas · {hiddenCount} ocultas
                     </p>
                 </div>
                 <button
-                    onClick={() => { setEditForm(EMPTY_FORM); setModalOpen(true); }}
+                    onClick={openNew}
                     className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[#F4C430] hover:bg-[#E3B520] text-gray-900 font-black text-sm transition-all shadow-sm self-start sm:self-auto"
                 >
-                    <Plus size={16} />
-                    Nueva Experiencia
+                    <Plus size={16} /> Nueva Experiencia
                 </button>
             </div>
 
             {/* Visibility tabs */}
-            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-2xl p-1 self-start">
+            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-2xl p-1 w-fit">
                 {([
-                    { key: "all", label: `Todos (${experiences.length})` },
+                    { key: "all",    label: `Todas (${experiences.length})` },
                     { key: "active", label: `Visibles (${activeCount})` },
                     { key: "hidden", label: `Ocultas (${hiddenCount})` },
                 ] as const).map(tab => (
-                    <button
-                        key={tab.key}
-                        onClick={() => setVisFilter(tab.key)}
+                    <button key={tab.key} onClick={() => setVisFilter(tab.key)}
                         className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-                            visFilter === tab.key
-                                ? "bg-gray-900 text-white shadow-sm"
-                                : "text-gray-400 hover:text-gray-700"
+                            visFilter === tab.key ? "bg-gray-900 text-white shadow-sm" : "text-gray-400 hover:text-gray-700"
                         }`}
                     >
                         {tab.label}
@@ -372,19 +537,11 @@ export default function AdminExperienciasPage() {
             <div className="relative">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Buscar por título o barrio..."
+                    value={search} onChange={e => setSearch(e.target.value)}
+                    placeholder="Buscar por título, barrio o categoría…"
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#F4C430]/40 focus:border-[#F4C430] transition-all"
                 />
             </div>
-
-            {/* Not configured warning */}
-            {!canWrite && (
-                <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-5 py-4 text-sm font-medium">
-                    ⚠️ <strong>Modo solo lectura.</strong> Las ediciones, creación y eliminación requieren Supabase configurado.
-                </div>
-            )}
 
             {/* List */}
             {isLoading ? (
@@ -392,12 +549,10 @@ export default function AdminExperienciasPage() {
                     <Loader2 size={28} className="animate-spin text-[#F4C430]" />
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="text-center py-20 text-gray-400 font-medium">
-                    No se encontraron experiencias.
-                </div>
+                <div className="text-center py-20 text-gray-400 font-medium">No se encontraron experiencias.</div>
             ) : (
                 <div className="space-y-3">
-                    {filtered.map((exp) => (
+                    {filtered.map(exp => (
                         <div key={exp.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all duration-200 ${exp.isActive === false ? "border-gray-100 opacity-60 grayscale-[40%]" : "border-gray-100"}`}>
                             {/* Inactive banner */}
                             {exp.isActive === false && (
@@ -406,15 +561,13 @@ export default function AdminExperienciasPage() {
                                         <EyeOff size={11} className="text-gray-400" />
                                         <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Oculta en el sitio web</span>
                                     </div>
-                                    <button
-                                        onClick={() => handleToggle(exp)}
-                                        className="text-[10px] font-black uppercase tracking-wider text-emerald-600 hover:text-emerald-700 transition-colors px-2 py-0.5 rounded-lg hover:bg-emerald-50"
-                                    >
+                                    <button onClick={() => handleToggle(exp)}
+                                        className="text-[10px] font-black uppercase tracking-wider text-emerald-600 hover:text-emerald-700 px-2 py-0.5 rounded-lg hover:bg-emerald-50 transition-colors">
                                         ↑ Volver a mostrar
                                     </button>
                                 </div>
                             )}
-                            {/* Row */}
+
                             <div className="flex items-center gap-4 px-5 py-4">
                                 <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
                                     {exp.coverImage && (
@@ -422,75 +575,53 @@ export default function AdminExperienciasPage() {
                                         <img src={exp.coverImage} alt={exp.title} className="w-full h-full object-cover" />
                                     )}
                                 </div>
-
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className="font-outfit font-black text-gray-900 text-sm leading-tight">{exp.title}</span>
-                                        {exp.categories?.map((cat) => (
+                                        {exp.categories?.slice(0, 2).map(cat => (
                                             <span key={cat} className="px-2 py-0.5 rounded-full bg-[#F4C430]/15 text-amber-700 text-[10px] font-bold uppercase tracking-wider">
                                                 {cat}
                                             </span>
                                         ))}
                                     </div>
                                     <div className="text-xs text-gray-400 font-medium mt-0.5">
-                                        {exp.neighborhood} · {exp.duration} · <code className="bg-gray-50 px-1 rounded">/{exp.slug}</code>
+                                        {exp.neighborhood} · {exp.duration} · <code className="bg-gray-50 px-1 rounded text-gray-500">/{exp.slug}</code>
                                     </div>
                                 </div>
-
-                                {/* Actions */}
                                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                                    <a
-                                        href={`/experiencias/${exp.slug}`}
-                                        target="_blank"
-                                        className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                                        title="Ver en sitio"
-                                    >
+                                    <a href={`/experiencias/${exp.slug}`} target="_blank"
+                                        className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors" title="Ver en sitio">
                                         <ExternalLink size={15} />
                                     </a>
-                                    <button
-                                        onClick={() => handleToggle(exp)}
-                                        className={`p-2 rounded-lg transition-colors ${canWrite ? "hover:bg-gray-100" : "opacity-40 cursor-not-allowed"}`}
+                                    <button onClick={() => handleToggle(exp)}
                                         title={exp.isActive !== false ? "Ocultar del sitio" : "Mostrar en el sitio"}
-                                    >
-                                        {exp.isActive !== false ? (
-                                            <Eye size={15} className="text-emerald-500" />
-                                        ) : (
-                                            <EyeOff size={15} className="text-gray-400" />
-                                        )}
+                                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                                        {exp.isActive !== false
+                                            ? <Eye size={15} className="text-emerald-500" />
+                                            : <EyeOff size={15} className="text-gray-400" />}
                                     </button>
-                                    <button
-                                        onClick={() => { setEditForm(expToForm(exp)); setModalOpen(true); }}
-                                        className={`p-2 rounded-lg transition-colors ${canWrite ? "hover:bg-gray-100 text-gray-400 hover:text-gray-700" : "opacity-40 cursor-not-allowed"}`}
-                                        title="Editar"
-                                    >
+                                    <button onClick={() => openEdit(exp)}
+                                        className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors" title="Editar">
                                         <Pencil size={15} />
                                     </button>
-                                    <button
-                                        onClick={() => handleDelete(exp.id)}
-                                        className={`p-2 rounded-lg transition-colors ${canWrite ? "hover:bg-red-50 text-gray-400 hover:text-red-500" : "opacity-40 cursor-not-allowed"}`}
-                                        title="Eliminar"
-                                    >
+                                    <button onClick={() => handleDelete(exp.id)}
+                                        className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Eliminar">
                                         <Trash2 size={15} />
                                     </button>
-                                    <button
-                                        onClick={() => setExpandedId(expandedId === exp.id ? null : exp.id)}
-                                        className="p-2 rounded-lg text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                                    >
+                                    <button onClick={() => setExpandedId(expandedId === exp.id ? null : exp.id)}
+                                        className="p-2 rounded-lg text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-colors">
                                         {expandedId === exp.id ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Expanded detail */}
                             {expandedId === exp.id && (
                                 <div className="px-5 pb-5 pt-2 border-t border-gray-50 bg-gray-50/50 text-sm text-gray-600">
                                     <p className="leading-relaxed line-clamp-3">{exp.shortDescription}</p>
                                     {exp.includes && exp.includes.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mt-3">
                                             {exp.includes.map((inc, i) => (
-                                                <span key={i} className="px-3 py-1 rounded-full bg-white border border-gray-100 text-xs font-medium text-gray-500">
-                                                    {inc}
-                                                </span>
+                                                <span key={i} className="px-3 py-1 rounded-full bg-white border border-gray-100 text-xs font-medium text-gray-500">{inc}</span>
                                             ))}
                                         </div>
                                     )}
@@ -501,16 +632,10 @@ export default function AdminExperienciasPage() {
                 </div>
             )}
 
-            {/* Modal */}
             <ExperienceModal
-                open={modalOpen}
-                onClose={() => setModalOpen(false)}
-                onSave={handleSave}
-                initial={editForm}
-                isSaving={isSaving}
+                open={modalOpen} onClose={() => setModalOpen(false)}
+                onSave={handleSave} initial={editForm} isSaving={isSaving} isNew={isNew}
             />
-
-            {/* Toast */}
             {toast && <Toast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
         </div>
     );

@@ -3,31 +3,23 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { createClient } from "../../lib/supabase-client";
 import {
-  LayoutDashboard,
-  Map,
-  Users,
-  Star,
-  ExternalLink,
-  Menu,
-  X,
-  ChevronRight,
-  BookOpen,
-  Building2,
-  MessageSquare,
-  ClipboardList,
-  LogOut,
-  User,
+  LayoutDashboard, Map, Users, Star, ExternalLink,
+  Menu, X, ChevronRight, BookOpen, Building2,
+  MessageSquare, ClipboardList, LogOut, User,
 } from "lucide-react";
 
+/* ─────────────────────────────────────────────────────
+   Tipos de navegación
+───────────────────────────────────────────────────── */
 interface NavItem {
   href: string;
   label: string;
   icon: React.ReactNode;
   exact?: boolean;
 }
-
 interface NavSection {
   title: string;
   items: NavItem[];
@@ -36,9 +28,7 @@ interface NavSection {
 const NAV_SECTIONS: NavSection[] = [
   {
     title: "Principal",
-    items: [
-      { href: "/admin", label: "Dashboard", icon: <LayoutDashboard size={17} />, exact: true },
-    ],
+    items: [{ href: "/admin", label: "Dashboard", icon: <LayoutDashboard size={17} />, exact: true }],
   },
   {
     title: "Contenido",
@@ -69,11 +59,50 @@ const SECTION_CRUMB_MAP: Record<string, string> = {
   postulaciones: "Postulaciones",
 };
 
+/* ─────────────────────────────────────────────────────
+   Loader de pantalla completa (mientras se verifica sesión)
+───────────────────────────────────────────────────── */
+function AuthLoader() {
+  return (
+    <div className="min-h-screen bg-[#FAFAF8] flex flex-col items-center justify-center gap-6">
+      <div className="relative w-52 h-16">
+        <Image
+          src="/logos/logo_principal.png"
+          alt="ComboXplora"
+          fill
+          className="object-contain"
+          priority
+        />
+      </div>
+      <div className="flex gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="w-2 h-2 rounded-full bg-[#F4C430]"
+            style={{
+              animation: `adminBounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+        Verificando sesión…
+      </p>
+      <style>{`
+        @keyframes adminBounce {
+          0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+          40% { transform: translateY(-7px); opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────
+   Sidebar
+───────────────────────────────────────────────────── */
 function Sidebar({
-  isOpen,
-  onClose,
-  userEmail,
-  onLogout,
+  isOpen, onClose, userEmail, onLogout,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -85,38 +114,37 @@ function Sidebar({
   return (
     <>
       {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden" onClick={onClose} />
       )}
 
-      <aside
-        className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-gray-950 flex flex-col transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0 lg:static lg:z-auto
-        `}
-      >
+      <aside className={`
+        fixed top-0 left-0 z-50 h-full w-64 bg-gray-950 flex flex-col transition-transform duration-300 ease-in-out
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        lg:translate-x-0 lg:static lg:z-auto
+      `}>
         {/* Logo */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
-          <Link href="/admin" className="flex flex-col" onClick={onClose}>
-            <span className="font-outfit text-lg font-black text-white tracking-tight">
-              Combo<span className="text-[#F4C430]">Xplora</span>
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mt-0.5">
-              Admin Panel
-            </span>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
+          <Link href="/admin" onClick={onClose} className="relative h-9 w-40">
+            <Image
+              src="/logos/logo_principal.png"
+              alt="ComboXplora"
+              fill
+              className="object-contain object-left brightness-0 invert"
+            />
           </Link>
-          <button
-            onClick={onClose}
-            className="lg:hidden text-gray-500 hover:text-white transition-colors p-1"
-          >
+          <button onClick={onClose} className="lg:hidden text-gray-500 hover:text-white transition-colors p-1">
             <X size={18} />
           </button>
         </div>
 
-        {/* Nav sections */}
+        {/* Badge admin */}
+        <div className="px-5 py-2 border-b border-white/8">
+          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#F4C430]">
+            Panel Administrativo
+          </span>
+        </div>
+
+        {/* Nav */}
         <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-5">
           {NAV_SECTIONS.map((section) => (
             <div key={section.title}>
@@ -125,13 +153,9 @@ function Sidebar({
               </p>
               <div className="space-y-0.5">
                 {section.items.map((item) => {
-                  const isExact = item.exact
-                    ? pathname === item.href
-                    : pathname.startsWith(item.href) && item.href !== "/admin";
                   const active = item.exact
                     ? pathname === item.href
-                    : isExact;
-
+                    : pathname.startsWith(item.href) && item.href !== "/admin";
                   return (
                     <Link
                       key={item.href}
@@ -141,8 +165,7 @@ function Sidebar({
                         flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150
                         ${active
                           ? "bg-[#F4C430] text-gray-900 shadow-sm"
-                          : "text-gray-400 hover:text-white hover:bg-white/5"
-                        }
+                          : "text-gray-400 hover:text-white hover:bg-white/5"}
                       `}
                     >
                       <span className={active ? "text-gray-900" : ""}>{item.icon}</span>
@@ -156,18 +179,16 @@ function Sidebar({
           ))}
         </nav>
 
-        {/* Footer: user + logout */}
+        {/* Footer: sitio + usuario */}
         <div className="border-t border-white/8 p-3 space-y-1">
           <Link
             href="/"
             target="_blank"
             onClick={onClose}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-500 hover:text-white hover:bg-white/5 transition-all duration-150"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-500 hover:text-white hover:bg-white/5 transition-all"
           >
-            <ExternalLink size={14} />
-            Ver sitio web
+            <ExternalLink size={14} /> Ver sitio web
           </Link>
-
           {userEmail && (
             <div className="px-3 py-2.5 rounded-xl bg-white/5 flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-[#F4C430]/20 flex items-center justify-center flex-shrink-0">
@@ -192,13 +213,10 @@ function Sidebar({
   );
 }
 
-function TopBar({
-  onOpenMenu,
-  onLogout,
-}: {
-  onOpenMenu: () => void;
-  onLogout: () => void;
-}) {
+/* ─────────────────────────────────────────────────────
+   Top Bar
+───────────────────────────────────────────────────── */
+function TopBar({ onOpenMenu, onLogout }: { onOpenMenu: () => void; onLogout: () => void }) {
   const pathname = usePathname();
   const segment = pathname.split("/")[2] ?? "";
   const sectionLabel = SECTION_CRUMB_MAP[segment] ?? "";
@@ -206,20 +224,14 @@ function TopBar({
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-5 py-3.5 flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
-        <button
-          onClick={onOpenMenu}
-          className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
-        >
+        <button onClick={onOpenMenu} className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
           <Menu size={19} />
         </button>
-
         <nav className="flex items-center gap-1.5 text-sm">
           <Link
             href="/admin"
             className={`font-semibold transition-colors ${
-              pathname === "/admin"
-                ? "text-gray-900 font-black"
-                : "text-gray-400 hover:text-gray-700"
+              pathname === "/admin" ? "text-gray-900 font-black" : "text-gray-400 hover:text-gray-700"
             }`}
           >
             Admin
@@ -232,15 +244,13 @@ function TopBar({
           )}
         </nav>
       </div>
-
       <div className="flex items-center gap-2">
         <Link
           href="/"
           target="_blank"
           className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 text-xs font-bold uppercase tracking-widest transition-all"
         >
-          <ExternalLink size={12} />
-          Ver Sitio
+          <ExternalLink size={12} /> Ver Sitio
         </Link>
         <button
           onClick={onLogout}
@@ -254,17 +264,42 @@ function TopBar({
   );
 }
 
+/* ─────────────────────────────────────────────────────
+   Root Layout
+   IMPORTANTE: el login page está dentro de /admin/*
+   entonces TAMBIÉN se renderiza con este layout.
+   Solución: si estamos en /admin/login → solo renderizar
+   {children}, sin auth gate ni sidebar.
+───────────────────────────────────────────────────── */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userEmail, setUserEmail] = useState<string>();
+  const pathname = usePathname();
   const router = useRouter();
 
+  // ¿Estamos en la página de login?
+  const isLoginPage = pathname === "/admin/login";
+
+  // Si estamos en login, NO iniciar con isAuthChecking=true (evita el loader)
+  const [isAuthChecking, setIsAuthChecking] = useState(!isLoginPage);
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>();
+
   useEffect(() => {
+    // Si estamos en login, no hacer nada — el middleware ya redirige si hay sesión
+    if (isLoginPage) return;
+
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
-      if (data?.user?.email) setUserEmail(data.user.email);
+      if (data?.user) {
+        setUserEmail(data.user.email ?? undefined);
+        setIsAuthed(true);
+      } else {
+        // Sin sesión → redirigir al login (refuerzo del middleware)
+        router.replace("/admin/login");
+      }
+      setIsAuthChecking(false);
     });
-  }, []);
+  }, [isLoginPage, router]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -273,6 +308,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.refresh();
   }
 
+  // ── CASO 1: Estamos en /admin/login ──────────────────
+  // Renderizar solo el formulario, sin ningún chrome admin.
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
+
+  // ── CASO 2: Verificando sesión ────────────────────────
+  if (isAuthChecking) {
+    return <AuthLoader />;
+  }
+
+  // ── CASO 3: Sin sesión (redirección en progreso) ──────
+  if (!isAuthed) {
+    return <AuthLoader />;          // muestra loader mientras router.replace carga
+  }
+
+  // ── CASO 4: Autenticado → layout completo ─────────────
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">
       <Sidebar
@@ -281,12 +333,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         userEmail={userEmail}
         onLogout={handleLogout}
       />
-
       <div className="flex-1 flex flex-col min-w-0 overflow-auto">
-        <TopBar
-          onOpenMenu={() => setSidebarOpen(true)}
-          onLogout={handleLogout}
-        />
+        <TopBar onOpenMenu={() => setSidebarOpen(true)} onLogout={handleLogout} />
         <main className="flex-1 p-5 lg:p-7 max-w-full">
           {children}
         </main>

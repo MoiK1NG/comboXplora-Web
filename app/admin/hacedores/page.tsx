@@ -138,6 +138,7 @@ export default function AdminHacedoresPage() {
     const [list, setList] = useState<HacedorData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [visFilter, setVisFilter] = useState<"all" | "active" | "hidden">("all");
     const [modalOpen, setModalOpen] = useState(false);
     const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
     const [isSaving, setIsSaving] = useState(false);
@@ -148,7 +149,7 @@ export default function AdminHacedoresPage() {
 
     const load = useCallback(async () => {
         setIsLoading(true);
-        const data = await fetchHacedores();
+        const data = await fetchHacedores({ includeInactive: true });
         setList(data);
         setIsLoading(false);
     }, []);
@@ -176,7 +177,8 @@ export default function AdminHacedoresPage() {
 
     async function handleToggle(h: HacedorData) {
         if (!canWrite) { showToast("Supabase no configurado.", "err"); return; }
-        await supabase.from("hacedores").update({ is_active: !(h as any).is_active }).eq("id", h.id);
+        await supabase.from("hacedores").update({ is_active: !h.isActive }).eq("id", h.id);
+        showToast(h.isActive ? "Hacedor ocultado del sitio." : "Hacedor visible en el sitio.", "ok");
         await load();
     }
 
@@ -188,18 +190,29 @@ export default function AdminHacedoresPage() {
         else { showToast("Hacedor eliminado.", "ok"); await load(); }
     }
 
-    const filtered = list.filter(h =>
-        h.name.toLowerCase().includes(search.toLowerCase()) ||
-        h.category.toLowerCase().includes(search.toLowerCase()) ||
-        h.neighborhood.toLowerCase().includes(search.toLowerCase())
-    );
+    const activeCount = list.filter(h => h.isActive !== false).length;
+    const hiddenCount = list.filter(h => h.isActive === false).length;
+
+    const filtered = list.filter(h => {
+        const matchesSearch =
+            h.name.toLowerCase().includes(search.toLowerCase()) ||
+            h.category.toLowerCase().includes(search.toLowerCase()) ||
+            h.neighborhood.toLowerCase().includes(search.toLowerCase());
+        const matchesVis =
+            visFilter === "all" ? true :
+            visFilter === "active" ? h.isActive !== false :
+            h.isActive === false;
+        return matchesSearch && matchesVis;
+    });
 
     return (
         <div className="max-w-5xl mx-auto space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="font-outfit text-2xl font-black text-gray-900">Hacedores</h1>
-                    <p className="text-sm text-gray-400 mt-0.5">{list.length} en total</p>
+                    <p className="text-sm text-gray-400 mt-0.5">
+                        {list.filter(h => h.isActive).length} activos · {list.filter(h => !h.isActive).length} ocultos
+                    </p>
                 </div>
                 <button
                     onClick={() => { setEditForm(EMPTY_FORM); setModalOpen(true); }}
@@ -207,6 +220,27 @@ export default function AdminHacedoresPage() {
                 >
                     <Plus size={16} /> Nuevo Hacedor
                 </button>
+            </div>
+
+            {/* Visibility tabs */}
+            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-2xl p-1 self-start">
+                {([
+                    { key: "all", label: `Todos (${list.length})` },
+                    { key: "active", label: `Visibles (${activeCount})` },
+                    { key: "hidden", label: `Ocultos (${hiddenCount})` },
+                ] as const).map(tab => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setVisFilter(tab.key)}
+                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                            visFilter === tab.key
+                                ? "bg-gray-900 text-white shadow-sm"
+                                : "text-gray-400 hover:text-gray-700"
+                        }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
             <div className="relative">
@@ -231,7 +265,22 @@ export default function AdminHacedoresPage() {
             ) : (
                 <div className="space-y-3">
                     {filtered.map((h) => (
-                        <div key={h.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div key={h.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all duration-200 ${!h.isActive ? "border-gray-100 opacity-60 grayscale-[40%]" : "border-gray-100"}`}>
+                            {/* Inactive banner */}
+                            {!h.isActive && (
+                                <div className="px-5 py-1.5 bg-gray-100 border-b border-gray-200 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <EyeOff size={11} className="text-gray-400" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Oculto en el sitio web</span>
+                                    </div>
+                                    <button
+                                        onClick={() => handleToggle(h)}
+                                        className="text-[10px] font-black uppercase tracking-wider text-emerald-600 hover:text-emerald-700 transition-colors px-2 py-0.5 rounded-lg hover:bg-emerald-50"
+                                    >
+                                        ↑ Volver a mostrar
+                                    </button>
+                                </div>
+                            )}
                             <div className="flex items-center gap-4 px-5 py-4">
                                 <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
                                     {h.profileImage ? (
@@ -255,9 +304,9 @@ export default function AdminHacedoresPage() {
                                         className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors" title="Ver en sitio">
                                         <ExternalLink size={15} />
                                     </a>
-                                    <button onClick={() => handleToggle(h)}
+                                    <button onClick={() => handleToggle(h)} title={h.isActive ? "Ocultar del sitio" : "Mostrar en el sitio"}
                                         className={`p-2 rounded-lg transition-colors ${canWrite ? "hover:bg-gray-100" : "opacity-40 cursor-not-allowed"}`}>
-                                        {(h as any).is_active !== false
+                                        {h.isActive
                                             ? <Eye size={15} className="text-emerald-500" />
                                             : <EyeOff size={15} className="text-gray-400" />}
                                     </button>

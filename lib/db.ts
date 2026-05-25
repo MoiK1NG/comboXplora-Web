@@ -20,6 +20,7 @@ export interface HacedorData {
   whatsapp: string;
   specialties: string[];
   experiences: string[];
+  isActive: boolean;
 }
 
 // ----------------------------------------------------
@@ -45,6 +46,8 @@ const mapExperienceRow = (row: any): Experience => ({
   whatToExpect: Array.isArray(row.what_to_expect) ? row.what_to_expect : [],
   recommendations: Array.isArray(row.recommendations) ? row.recommendations : [],
   gallery: Array.isArray(row.gallery) ? row.gallery : [],
+  isActive: row.is_active !== false,
+  isFeatured: row.is_featured === true,
 });
 
 const mapHacedorRow = (row: any): HacedorData => ({
@@ -62,6 +65,7 @@ const mapHacedorRow = (row: any): HacedorData => ({
   whatsapp: row.whatsapp || '',
   specialties: Array.isArray(row.specialties) ? row.specialties : [],
   experiences: Array.isArray(row.experiences) ? row.experiences : [],
+  isActive: row.is_active !== false,
 });
 
 const mapMapItemRow = (row: any): MapItem => ({
@@ -81,24 +85,24 @@ const mapMapItemRow = (row: any): MapItem => ({
   tags: Array.isArray(row.tags) ? row.tags : [],
   narrator: row.narrator || '',
   audioUrl: row.audio_url || '',
+  isActive: row.is_active !== false,
 });
 
 // ----------------------------------------------------
 // READ OPERATIONS (WITH STATIC FALLBACK)
 // ----------------------------------------------------
 
-export async function fetchExperiences(): Promise<Experience[]> {
+export async function fetchExperiences(opts?: { includeInactive?: boolean }): Promise<Experience[]> {
   if (!isSupabaseConfigured()) {
     console.warn('Supabase not configured. Falling back to local static experiences.');
     return staticExperiences;
   }
 
   try {
-    const { data, error } = await supabase
-      .from('experiencias')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: true });
+    let query = supabase.from('experiencias').select('*').order('created_at', { ascending: true });
+    if (!opts?.includeInactive) query = query.eq('is_active', true);
+
+    const { data, error } = await query;
 
     if (error) throw error;
     if (!data || data.length === 0) return staticExperiences;
@@ -133,26 +137,25 @@ export async function fetchExperienceBySlug(slug: string): Promise<Experience | 
   }
 }
 
-export async function fetchHacedores(): Promise<HacedorData[]> {
+export async function fetchHacedores(opts?: { includeInactive?: boolean }): Promise<HacedorData[]> {
   if (!isSupabaseConfigured()) {
     console.warn('Supabase not configured. Falling back to local static hacedores.');
-    return staticHacedores as HacedorData[];
+    return (staticHacedores as any[]).map(h => ({ ...h, isActive: true }));
   }
 
   try {
-    const { data, error } = await supabase
-      .from('hacedores')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: true });
+    let query = supabase.from('hacedores').select('*').order('created_at', { ascending: true });
+    if (!opts?.includeInactive) query = query.eq('is_active', true);
+
+    const { data, error } = await query;
 
     if (error) throw error;
-    if (!data || data.length === 0) return staticHacedores as HacedorData[];
+    if (!data || data.length === 0) return (staticHacedores as any[]).map(h => ({ ...h, isActive: true }));
 
     return data.map(mapHacedorRow);
   } catch (err) {
     console.error('Failed to fetch hacedores from Supabase. Falling back to static JSON.', err);
-    return staticHacedores as HacedorData[];
+    return (staticHacedores as any[]).map(h => ({ ...h, isActive: true }));
   }
 }
 
@@ -179,25 +182,25 @@ export async function fetchHacedorBySlug(slug: string): Promise<HacedorData | nu
   }
 }
 
-export async function fetchMapPoints(): Promise<MapItem[]> {
+export async function fetchMapPoints(opts?: { includeInactive?: boolean }): Promise<MapItem[]> {
   if (!isSupabaseConfigured()) {
     console.warn('Supabase not configured. Falling back to local static map items.');
-    return staticMapItems as MapItem[];
+    return (staticMapItems as any[]).map(i => ({ ...i, isActive: true }));
   }
 
   try {
-    const { data, error } = await supabase
-      .from('mapa_cultural')
-      .select('*')
-      .eq('is_active', true);
+    let query = supabase.from('mapa_cultural').select('*');
+    if (!opts?.includeInactive) query = query.eq('is_active', true);
+
+    const { data, error } = await query;
 
     if (error) throw error;
-    if (!data || data.length === 0) return staticMapItems as MapItem[];
+    if (!data || data.length === 0) return (staticMapItems as any[]).map(i => ({ ...i, isActive: true }));
 
     return data.map(mapMapItemRow);
   } catch (err) {
     console.error('Failed to fetch map items from Supabase. Falling back to static JSON.', err);
-    return staticMapItems as MapItem[];
+    return (staticMapItems as any[]).map(i => ({ ...i, isActive: true }));
   }
 }
 

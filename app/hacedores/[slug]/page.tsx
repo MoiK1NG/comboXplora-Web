@@ -4,8 +4,9 @@ import { fetchHacedorBySlug, fetchExperiences } from "../../../lib/db";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Instagram, Phone, Award, BookOpen, Star, Sparkles, ArrowLeft } from "lucide-react";
+import { MapPin, Instagram, Phone, Award, BookOpen, Sparkles, ArrowLeft } from "lucide-react";
 import { ExperienceCard } from "../../../components/experiences/experience-card";
+import { GalleryLightbox } from "../../../components/admin/GalleryLightbox";
 
 export default async function HacedorPerfilPage({
     params,
@@ -158,26 +159,12 @@ export default async function HacedorPerfilPage({
                             </p>
                         </div>
 
-                        {/* Gallery Section */}
+                        {/* Gallery Section — with lightbox */}
                         {host.gallery && host.gallery.length > 0 && (
-                            <div className="space-y-4">
-                                <h3 className="font-outfit text-xl font-black text-gray-900 flex items-center gap-2">
-                                    <Star className="text-primary w-5 h-5" />
-                                    Galería de Momentos
-                                </h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    {host.gallery.map((imgUrl, i) => (
-                                        <div key={i} className="relative h-48 sm:h-56 rounded-2xl overflow-hidden bg-gray-100 group border border-gray-100 shadow-sm">
-                                            <Image
-                                                src={imgUrl}
-                                                alt={`${host.name} gallery image ${i + 1}`}
-                                                fill
-                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                            <GalleryLightbox
+                                images={host.gallery}
+                                altPrefix={`${host.name} — galería`}
+                            />
                         )}
 
                         {/* Hosted experiences */}

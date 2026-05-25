@@ -56,6 +56,7 @@ export type MapItem = {
   tags?: string[];
   narrator?: string;
   audioUrl?: string;
+  isActive?: boolean;
 };
 
 // ─────────────────────────────────────────────

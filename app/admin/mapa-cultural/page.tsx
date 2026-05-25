@@ -173,6 +173,7 @@ export default function AdminMapaCulturalPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [typeFilter, setTypeFilter] = useState<"all" | "experience" | "audio">("all");
+    const [visFilter, setVisFilter] = useState<"all" | "active" | "hidden">("all");
     const [modalOpen, setModalOpen] = useState(false);
     const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
     const [isSaving, setIsSaving] = useState(false);
@@ -183,7 +184,7 @@ export default function AdminMapaCulturalPage() {
 
     const load = useCallback(async () => {
         setIsLoading(true);
-        const data = await fetchMapPoints();
+        const data = await fetchMapPoints({ includeInactive: true });
         setItems(data);
         setIsLoading(false);
     }, []);
@@ -211,7 +212,8 @@ export default function AdminMapaCulturalPage() {
 
     async function handleToggle(item: MapItem) {
         if (!canWrite) { showToast("Supabase no configurado.", "err"); return; }
-        await supabase.from("mapa_cultural").update({ is_active: !(item as any).is_active }).eq("id", item.id);
+        await supabase.from("mapa_cultural").update({ is_active: !item.isActive }).eq("id", item.id);
+        showToast(item.isActive ? "Punto ocultado del mapa." : "Punto visible en el mapa.", "ok");
         await load();
     }
 
@@ -229,8 +231,15 @@ export default function AdminMapaCulturalPage() {
             item.neighborhood?.toLowerCase().includes(search.toLowerCase()) ||
             item.categories?.some(c => c.toLowerCase().includes(search.toLowerCase()));
         const matchesType = typeFilter === "all" || item.type === typeFilter;
-        return matchesSearch && matchesType;
+        const matchesVis =
+            visFilter === "all" ? true :
+            visFilter === "active" ? item.isActive !== false :
+            item.isActive === false;
+        return matchesSearch && matchesType && matchesVis;
     });
+
+    const activeCount = items.filter(i => i.isActive !== false).length;
+    const hiddenCount = items.filter(i => i.isActive === false).length;
 
     return (
         <div className="max-w-5xl mx-auto space-y-8">
@@ -239,7 +248,7 @@ export default function AdminMapaCulturalPage() {
                 <div>
                     <h1 className="font-outfit text-2xl font-black text-gray-900">Mapa Cultural</h1>
                     <p className="text-sm text-gray-400 mt-0.5">
-                        {items.length} puntos · {items.filter(i => i.type === "experience").length} experiencias · {items.filter(i => i.type === "audio").length} audios
+                        {activeCount} visibles · {hiddenCount} ocultos · {items.filter(i => i.type === "audio").length} audios
                     </p>
                 </div>
                 <button
@@ -248,6 +257,27 @@ export default function AdminMapaCulturalPage() {
                 >
                     <Plus size={16} /> Nuevo Punto
                 </button>
+            </div>
+
+            {/* Visibility tabs */}
+            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-2xl p-1 self-start">
+                {([
+                    { key: "all", label: `Todos (${items.length})` },
+                    { key: "active", label: `Visibles (${activeCount})` },
+                    { key: "hidden", label: `Ocultos (${hiddenCount})` },
+                ] as const).map(tab => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setVisFilter(tab.key)}
+                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                            visFilter === tab.key
+                                ? "bg-gray-900 text-white shadow-sm"
+                                : "text-gray-400 hover:text-gray-700"
+                        }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
             {/* Filters row */}
@@ -286,7 +316,22 @@ export default function AdminMapaCulturalPage() {
             ) : (
                 <div className="space-y-3">
                     {filtered.map(item => (
-                        <div key={item.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div key={item.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all duration-200 ${item.isActive === false ? "border-gray-100 opacity-60 grayscale-[40%]" : "border-gray-100"}`}>
+                            {/* Inactive banner */}
+                            {item.isActive === false && (
+                                <div className="px-5 py-1.5 bg-gray-100 border-b border-gray-200 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <EyeOff size={11} className="text-gray-400" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Oculto en el mapa</span>
+                                    </div>
+                                    <button
+                                        onClick={() => handleToggle(item)}
+                                        className="text-[10px] font-black uppercase tracking-wider text-emerald-600 hover:text-emerald-700 transition-colors px-2 py-0.5 rounded-lg hover:bg-emerald-50"
+                                    >
+                                        ↑ Volver a mostrar
+                                    </button>
+                                </div>
+                            )}
                             <div className="flex items-center gap-4 px-5 py-4">
                                 {/* Thumbnail */}
                                 <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
@@ -318,9 +363,11 @@ export default function AdminMapaCulturalPage() {
                                         className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors" title="Ver mapa">
                                         <ExternalLink size={15} />
                                     </a>
-                                    <button onClick={() => handleToggle(item)}
+                                    <button
+                                        onClick={() => handleToggle(item)}
+                                        title={item.isActive !== false ? "Ocultar del mapa" : "Mostrar en el mapa"}
                                         className={`p-2 rounded-lg transition-colors ${canWrite ? "hover:bg-gray-100" : "opacity-40 cursor-not-allowed"}`}>
-                                        {(item as any).is_active !== false
+                                        {item.isActive !== false
                                             ? <Eye size={15} className="text-emerald-500" />
                                             : <EyeOff size={15} className="text-gray-400" />}
                                     </button>

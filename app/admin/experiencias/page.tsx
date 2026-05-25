@@ -249,6 +249,7 @@ export default function AdminExperienciasPage() {
     const [experiences, setExperiences] = useState<Experience[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [visFilter, setVisFilter] = useState<"all" | "active" | "hidden">("all");
     const [modalOpen, setModalOpen] = useState(false);
     const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
     const [isSaving, setIsSaving] = useState(false);
@@ -259,7 +260,7 @@ export default function AdminExperienciasPage() {
 
     const load = useCallback(async () => {
         setIsLoading(true);
-        const data = await fetchExperiences();
+        const data = await fetchExperiences({ includeInactive: true });
         setExperiences(data);
         setIsLoading(false);
     }, []);
@@ -296,10 +297,13 @@ export default function AdminExperienciasPage() {
         if (!canWrite) { showToast("Supabase no configurado.", "err"); return; }
         const { error } = await supabase
             .from("experiencias")
-            .update({ is_active: !(exp as any).is_active })
+            .update({ is_active: !exp.isActive })
             .eq("id", exp.id);
         if (error) showToast(error.message, "err");
-        else await load();
+        else {
+            showToast(exp.isActive ? "Experiencia ocultada del sitio." : "Experiencia visible en el sitio.", "ok");
+            await load();
+        }
     }
 
     async function handleDelete(id: string) {
@@ -310,11 +314,19 @@ export default function AdminExperienciasPage() {
         else { showToast("Experiencia eliminada.", "ok"); await load(); }
     }
 
-    const filtered = experiences.filter(
-        (e) =>
+    const activeCount = experiences.filter(e => e.isActive !== false).length;
+    const hiddenCount = experiences.filter(e => e.isActive === false).length;
+
+    const filtered = experiences.filter((e) => {
+        const matchesSearch =
             e.title.toLowerCase().includes(search.toLowerCase()) ||
-            e.neighborhood?.toLowerCase().includes(search.toLowerCase())
-    );
+            e.neighborhood?.toLowerCase().includes(search.toLowerCase());
+        const matchesVis =
+            visFilter === "all" ? true :
+            visFilter === "active" ? e.isActive !== false :
+            e.isActive === false;
+        return matchesSearch && matchesVis;
+    });
 
     return (
         <div className="max-w-5xl mx-auto space-y-8">
@@ -322,7 +334,9 @@ export default function AdminExperienciasPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="font-outfit text-2xl font-black text-gray-900">Experiencias</h1>
-                    <p className="text-sm text-gray-400 mt-0.5">{experiences.length} en total</p>
+                    <p className="text-sm text-gray-400 mt-0.5">
+                        {experiences.filter(e => e.isActive !== false).length} activas · {experiences.filter(e => e.isActive === false).length} ocultas
+                    </p>
                 </div>
                 <button
                     onClick={() => { setEditForm(EMPTY_FORM); setModalOpen(true); }}
@@ -331,6 +345,27 @@ export default function AdminExperienciasPage() {
                     <Plus size={16} />
                     Nueva Experiencia
                 </button>
+            </div>
+
+            {/* Visibility tabs */}
+            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-2xl p-1 self-start">
+                {([
+                    { key: "all", label: `Todos (${experiences.length})` },
+                    { key: "active", label: `Visibles (${activeCount})` },
+                    { key: "hidden", label: `Ocultas (${hiddenCount})` },
+                ] as const).map(tab => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setVisFilter(tab.key)}
+                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                            visFilter === tab.key
+                                ? "bg-gray-900 text-white shadow-sm"
+                                : "text-gray-400 hover:text-gray-700"
+                        }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
             {/* Search */}
@@ -363,7 +398,22 @@ export default function AdminExperienciasPage() {
             ) : (
                 <div className="space-y-3">
                     {filtered.map((exp) => (
-                        <div key={exp.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div key={exp.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all duration-200 ${exp.isActive === false ? "border-gray-100 opacity-60 grayscale-[40%]" : "border-gray-100"}`}>
+                            {/* Inactive banner */}
+                            {exp.isActive === false && (
+                                <div className="px-5 py-1.5 bg-gray-100 border-b border-gray-200 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <EyeOff size={11} className="text-gray-400" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Oculta en el sitio web</span>
+                                    </div>
+                                    <button
+                                        onClick={() => handleToggle(exp)}
+                                        className="text-[10px] font-black uppercase tracking-wider text-emerald-600 hover:text-emerald-700 transition-colors px-2 py-0.5 rounded-lg hover:bg-emerald-50"
+                                    >
+                                        ↑ Volver a mostrar
+                                    </button>
+                                </div>
+                            )}
                             {/* Row */}
                             <div className="flex items-center gap-4 px-5 py-4">
                                 <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
@@ -400,9 +450,9 @@ export default function AdminExperienciasPage() {
                                     <button
                                         onClick={() => handleToggle(exp)}
                                         className={`p-2 rounded-lg transition-colors ${canWrite ? "hover:bg-gray-100" : "opacity-40 cursor-not-allowed"}`}
-                                        title="Activar/Desactivar"
+                                        title={exp.isActive !== false ? "Ocultar del sitio" : "Mostrar en el sitio"}
                                     >
-                                        {(exp as any).is_active !== false ? (
+                                        {exp.isActive !== false ? (
                                             <Eye size={15} className="text-emerald-500" />
                                         ) : (
                                             <EyeOff size={15} className="text-gray-400" />

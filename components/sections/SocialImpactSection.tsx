@@ -1,24 +1,29 @@
+"use client";
+
 import React from 'react';
 import Image from 'next/image';
 import { Heart, Sparkles, Map } from 'lucide-react';
+import { useLang } from '../../app/lang-context';
+import T from '../../lib/translations';
 
 export function SocialImpactSection() {
+    const { lang } = useLang();
     const impacts = [
         {
             icon: <Heart strokeWidth={1.5} size={32} className="text-rose-500" />,
-            title: "Preservación Vital",
-            desc: "Protegemos directamente el legado de los portadores de tradición de Barranquilla."
+            title: T.impact.item1Title[lang],
+            desc: T.impact.item1Desc[lang],
         },
         {
             icon: <Map strokeWidth={1.5} size={32} className="text-emerald-600" />,
-            title: "Economía Circular",
-            desc: "El 80% de los ingresos se queda en la comunidad local y fomenta el emprendimiento."
+            title: T.impact.item2Title[lang],
+            desc: T.impact.item2Desc[lang],
         },
         {
             icon: <Sparkles strokeWidth={1.5} size={32} className="text-secondary" />,
-            title: "Turismo Regenerativo",
-            desc: "Diseñamos rutas que respetan y enriquecen la cotidianidad, sin alterar negativamente los barrios."
-        }
+            title: T.impact.item3Title[lang],
+            desc: T.impact.item3Desc[lang],
+        },
     ];
 
     return (
@@ -33,10 +38,10 @@ export function SocialImpactSection() {
                     {/* Text Content */}
                     <div className="lg:w-1/2">
                         <h2 className="font-outfit text-5xl md:text-6xl font-black mb-8 text-gray-900 text-balance tracking-tight leading-[1.05]">
-                            Tu exploración genera <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#c79a10]">impacto real.</span>
+                            {T.impact.title[lang]} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#c79a10]">{T.impact.titleAccent[lang]}</span>
                         </h2>
                         <p className="font-sans text-gray-500 text-[1.15rem] leading-[1.8] max-w-xl mb-12">
-                            Cada reserva en ComboXplora no es solo un tour; es una inversión directa en el tejido cultural de la ciudad. Juntos garantizamos que las tradiciones sigan vivas para las próximas generaciones.
+                            {T.impact.subtitle[lang]}
                         </p>
 
                         <div className="space-y-10">
@@ -65,9 +70,9 @@ export function SocialImpactSection() {
 
                         {/* Floating Info Card */}
                         <div className="absolute -bottom-8 -left-8 bg-white p-8 rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 max-w-xs animate-[bounce_8s_infinite_ease-in-out]">
-                            <p className="font-outfit text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Comunidad Alcanzada</p>
+                            <p className="font-outfit text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">{T.impact.floatingLabel[lang]}</p>
                             <p className="font-outfit text-5xl font-black text-gray-900">+500</p>
-                            <p className="font-sans text-sm text-gray-500 mt-2 font-medium">Familias beneficiadas en el último año a través del turismo.</p>
+                            <p className="font-sans text-sm text-gray-500 mt-2 font-medium">{T.impact.floatingDesc[lang]}</p>
                         </div>
                     </div>
 

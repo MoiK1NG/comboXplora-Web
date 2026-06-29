@@ -13,6 +13,7 @@ import {
     Loader2, ExternalLink, Search, ChevronDown, ChevronUp, Map,
     HelpCircle,
 } from "lucide-react";
+import { useChanges } from "../changes-context";
 
 // ─────────────────────────────────────────────
 // Toast
@@ -72,106 +73,201 @@ function CategoryPicker({
 }
 
 // ─────────────────────────────────────────────
-// Smart coordinate input (raw coords OR Google Maps URL)
+// CoordInput con exclusión mutua:
+//  - Modo A: pegar coordenadas directas (ej: "10.9850, -74.7820")
+//  - Modo B: pegar enlace de Google Maps
+//  Cuando uno tiene contenido, el otro se deshabilita.
 // ─────────────────────────────────────────────
 function CoordInput({
     lat, lng, onChangeLat, onChangeLng,
 }: { lat: string; lng: string; onChangeLat: (v: string) => void; onChangeLng: (v: string) => void }) {
-    const [raw, setRaw] = useState("");
-    const [status, setStatus] = useState<"idle" | "ok" | "err">("idle");
-    const [showHelp, setShowHelp] = useState(false);
+    const [coordsRaw, setCoordsRaw]   = useState(""); // modo A
+    const [mapsUrl, setMapsUrl]       = useState(""); // modo B
+    const [statusA, setStatusA] = useState<"idle" | "ok" | "err">("idle");
+    const [statusB, setStatusB] = useState<"idle" | "ok" | "err">("idle");
+    const [showHelp, setShowHelp]     = useState(false);
 
-    function handleExtract() {
-        const parsed = parseCoordinates(raw);
+    const modeAActive = coordsRaw.trim() !== "";
+    const modeBActive = mapsUrl.trim()   !== "";
+
+    // Modo A activo → deshabilitar B; Modo B activo → deshabilitar A
+    const disableA = modeBActive;
+    const disableB = modeAActive;
+
+    function handleExtractCoords() {
+        const parsed = parseCoordinates(coordsRaw);
         if (parsed) {
             onChangeLat(String(parsed.lat));
             onChangeLng(String(parsed.lng));
-            setStatus("ok");
-            setRaw("");
-            setTimeout(() => setStatus("idle"), 3000);
+            setStatusA("ok");
+            setTimeout(() => setStatusA("idle"), 4000);
         } else {
-            setStatus("err");
+            setStatusA("err");
         }
     }
 
+    function handleExtractMaps() {
+        const parsed = parseCoordinates(mapsUrl);
+        if (parsed) {
+            onChangeLat(String(parsed.lat));
+            onChangeLng(String(parsed.lng));
+            setStatusB("ok");
+            setTimeout(() => setStatusB("idle"), 4000);
+        } else {
+            setStatusB("err");
+        }
+    }
+
+    function clearA() { setCoordsRaw(""); setStatusA("idle"); }
+    function clearB() { setMapsUrl("");   setStatusB("idle"); }
+
     return (
-        <div className="space-y-3">
-            {/* Smart input */}
-            <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                    <span className={labelCls + " mb-0"}>Pegar coordenadas o enlace de Google Maps</span>
-                    <button
-                        type="button"
-                        onClick={() => setShowHelp(v => !v)}
-                        className="p-1 rounded-full text-gray-400 hover:text-blue-500 transition-colors"
-                        title="¿Cómo obtener las coordenadas?"
-                    >
-                        <HelpCircle size={14} />
+        <div className="space-y-4">
+            {/* ── Opción A: Coordenadas directas ── */}
+            <div className={`rounded-xl border-2 p-4 space-y-3 transition-all ${
+                disableA ? "border-gray-100 bg-gray-50 opacity-50 pointer-events-none" :
+                modeAActive ? "border-emerald-200 bg-emerald-50/30" :
+                "border-gray-200 bg-white"
+            }`}>
+                <div className="flex items-center justify-between">
+                    <p className="text-xs font-black text-gray-700 uppercase tracking-widest">
+                        A · Coordenadas directas
+                    </p>
+                    {modeAActive && (
+                        <button type="button" onClick={clearA}
+                            className="text-[10px] font-bold text-red-400 hover:text-red-600 uppercase tracking-wider">
+                            × limpiar
+                        </button>
+                    )}
+                </div>
+                <div className="flex gap-2">
+                    <input
+                        value={coordsRaw}
+                        onChange={e => { setCoordsRaw(e.target.value); setStatusA("idle"); }}
+                        onKeyDown={e => e.key === "Enter" && (e.preventDefault(), handleExtractCoords())}
+                        placeholder="Ej: 10.9850, -74.7820"
+                        disabled={disableA}
+                        className={inputCls + " flex-1"}
+                    />
+                    <button type="button" onClick={handleExtractCoords} disabled={!coordsRaw.trim()}
+                        className="px-4 py-3 rounded-xl bg-gray-900 text-white text-xs font-black hover:bg-gray-700 disabled:opacity-40 transition-all whitespace-nowrap">
+                        Extraer
                     </button>
                 </div>
+                {statusA === "ok" && (
+                    <p className="text-[11px] text-emerald-600 font-semibold">✓ Extraídas: {lat}, {lng}</p>
+                )}
+                {statusA === "err" && (
+                    <p className="text-[11px] text-red-500 font-semibold">No se reconocieron las coordenadas. Prueba el formato: 10.9850, -74.7820</p>
+                )}
+            </div>
 
-                {/* Help panel */}
+            {/* Separador "o" */}
+            <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-gray-100" />
+                <span className="text-xs font-black text-gray-300 uppercase tracking-widest">o</span>
+                <div className="h-px flex-1 bg-gray-100" />
+            </div>
+
+            {/* ── Opción B: Enlace de Google Maps ── */}
+            <div className={`rounded-xl border-2 p-4 space-y-3 transition-all ${
+                disableB ? "border-gray-100 bg-gray-50 opacity-50 pointer-events-none" :
+                modeBActive ? "border-blue-200 bg-blue-50/30" :
+                "border-gray-200 bg-white"
+            }`}>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <p className="text-xs font-black text-gray-700 uppercase tracking-widest">
+                            B · Enlace de Google Maps
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => setShowHelp(v => !v)}
+                            className="w-5 h-5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-black hover:bg-gray-200 flex items-center justify-center transition-colors"
+                            title="¿Cómo obtener el enlace?"
+                        >
+                            <HelpCircle size={11} />
+                        </button>
+                    </div>
+                    {modeBActive && (
+                        <button type="button" onClick={clearB}
+                            className="text-[10px] font-bold text-red-400 hover:text-red-600 uppercase tracking-wider">
+                            × limpiar
+                        </button>
+                    )}
+                </div>
+
+                {/* Help */}
                 {showHelp && (
-                    <div className="mb-3 p-4 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-700 space-y-2">
-                        <p className="font-black text-blue-800">¿Cómo obtener las coordenadas?</p>
-                        <div className="space-y-1.5 text-blue-600">
-                            <p className="font-bold">Opción 1 — Clic derecho en Google Maps:</p>
-                            <ol className="list-decimal list-inside space-y-1 ml-1">
-                                <li>Abre <strong>Google Maps</strong> y busca el lugar</li>
-                                <li>Haz <strong>clic derecho</strong> sobre el punto exacto</li>
-                                <li>Aparecerán dos números (ej: <code className="bg-blue-100 px-1 rounded">10.9850, -74.7820</code>)</li>
-                                <li>Haz clic en ellos para copiarlos → pégalos aquí</li>
-                            </ol>
-                            <p className="font-bold mt-2">Opción 2 — Compartir enlace:</p>
-                            <ol className="list-decimal list-inside space-y-1 ml-1">
-                                <li>Busca el lugar en Google Maps</li>
-                                <li>Toca <strong>Compartir → Copiar enlace</strong></li>
-                                <li>Pega el enlace completo aquí y pulsa <strong>Extraer</strong></li>
-                            </ol>
+                    <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-700 space-y-3">
+                        <p className="font-black text-blue-800 text-[11px] uppercase tracking-wider">¿Cómo obtener el enlace?</p>
+                        <div className="space-y-2.5">
+                            <div>
+                                <p className="font-bold mb-1">Desde computador (más preciso):</p>
+                                <ol className="list-decimal list-inside space-y-1 text-blue-600 ml-1">
+                                    <li>Abre <strong>Google Maps</strong> en el navegador</li>
+                                    <li>Busca o navega al lugar exacto</li>
+                                    <li>Haz <strong>clic derecho</strong> sobre el punto</li>
+                                    <li>Aparecen dos números en el menú — <strong>haz clic en ellos</strong> para copiar</li>
+                                    <li>Pégalos en el campo A ↑ (más arriba)</li>
+                                </ol>
+                            </div>
+                            <div>
+                                <p className="font-bold mb-1">Desde el celular (compartir enlace):</p>
+                                <ol className="list-decimal list-inside space-y-1 text-blue-600 ml-1">
+                                    <li>Abre <strong>Google Maps</strong> y busca el lugar</li>
+                                    <li>Toca el nombre del lugar para ver su ficha</li>
+                                    <li>Toca <strong>Compartir</strong> y luego <strong>Copiar enlace</strong></li>
+                                    <li>Pega el enlace aquí y toca <strong>Extraer</strong></li>
+                                </ol>
+                            </div>
+                            <p className="text-blue-500 text-[10px] border-t border-blue-100 pt-2">
+                                💡 Si el enlace corto (maps.app.goo.gl) no funciona, abre el enlace en el navegador, copia la URL completa de la barra de direcciones y pégala aquí.
+                            </p>
                         </div>
                     </div>
                 )}
 
                 <div className="flex gap-2">
                     <input
-                        value={raw}
-                        onChange={e => { setRaw(e.target.value); setStatus("idle"); }}
-                        onKeyDown={e => e.key === "Enter" && (e.preventDefault(), handleExtract())}
-                        placeholder='Ej: "10.9850, -74.7820" o URL de Google Maps'
+                        value={mapsUrl}
+                        onChange={e => { setMapsUrl(e.target.value); setStatusB("idle"); }}
+                        onKeyDown={e => e.key === "Enter" && (e.preventDefault(), handleExtractMaps())}
+                        placeholder="https://maps.app.goo.gl/... o URL completa"
+                        disabled={disableB}
                         className={inputCls + " flex-1"}
                     />
-                    <button
-                        type="button"
-                        onClick={handleExtract}
-                        className="px-4 py-3 rounded-xl bg-gray-900 text-white text-xs font-black hover:bg-gray-700 transition-all whitespace-nowrap"
-                    >
+                    <button type="button" onClick={handleExtractMaps} disabled={!mapsUrl.trim()}
+                        className="px-4 py-3 rounded-xl bg-blue-600 text-white text-xs font-black hover:bg-blue-700 disabled:opacity-40 transition-all whitespace-nowrap">
                         Extraer
                     </button>
                 </div>
-
-                {status === "ok" && (
-                    <p className="text-[11px] text-emerald-600 font-semibold mt-1.5">
-                        ✓ Coordenadas extraídas: {lat}, {lng}
-                    </p>
+                {statusB === "ok" && (
+                    <p className="text-[11px] text-emerald-600 font-semibold">✓ Extraídas: {lat}, {lng}</p>
                 )}
-                {status === "err" && (
-                    <p className="text-[11px] text-red-500 font-semibold mt-1.5">
-                        No se pudo extraer. Prueba con el formato: "10.9850, -74.7820"
+                {statusB === "err" && (
+                    <p className="text-[11px] text-red-500 font-semibold">
+                        No se pudieron extraer coordenadas. Intenta con la URL completa del navegador (no el enlace corto).
                     </p>
                 )}
             </div>
 
-            {/* Manual lat/lng */}
-            <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <label className={labelCls}>Latitud</label>
-                    <input value={lat} onChange={e => { onChangeLat(e.target.value); setStatus("idle"); }}
-                        placeholder="10.9850" className={inputCls} />
-                </div>
-                <div>
-                    <label className={labelCls}>Longitud</label>
-                    <input value={lng} onChange={e => { onChangeLng(e.target.value); setStatus("idle"); }}
-                        placeholder="-74.7820" className={inputCls} />
+            {/* ── Resultado: lat/lng editable directamente ── */}
+            <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                    Coordenadas resultantes (editables)
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className={labelCls}>Latitud</label>
+                        <input value={lat} onChange={e => { onChangeLat(e.target.value); }}
+                            placeholder="10.9850" className={inputCls} />
+                    </div>
+                    <div>
+                        <label className={labelCls}>Longitud</label>
+                        <input value={lng} onChange={e => { onChangeLng(e.target.value); }}
+                            placeholder="-74.7820" className={inputCls} />
+                    </div>
                 </div>
             </div>
         </div>
@@ -495,6 +591,7 @@ export default function AdminMapaCulturalPage() {
     const [toast, setToast] = useState<{ message: string; type: "ok" | "err" } | null>(null);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const supabase = createClient();
+    const { addChange } = useChanges();
 
     const load = useCallback(async () => {
         setIsLoading(true);
@@ -527,6 +624,10 @@ export default function AdminMapaCulturalPage() {
             const { error } = await supabase.from("mapa_cultural").upsert(formToPayload(form), { onConflict: "id" });
             if (error) throw error;
             showToast("Punto guardado con éxito.", "ok");
+            addChange(
+                isNew ? `Creó punto en mapa: "${form.title}"` : `Editó punto en mapa: "${form.title}"`,
+                "Mapa Cultural"
+            );
             setModalOpen(false);
             await load();
         } catch (e: any) {
@@ -537,16 +638,30 @@ export default function AdminMapaCulturalPage() {
     }
 
     async function handleToggle(item: MapItem) {
-        await supabase.from("mapa_cultural").update({ is_active: !item.isActive }).eq("id", item.id);
-        showToast(item.isActive ? "Punto ocultado del mapa." : "Punto visible en el mapa.", "ok");
-        await load();
+        const { error } = await supabase.from("mapa_cultural").update({ is_active: !item.isActive }).eq("id", item.id);
+        if (error) {
+            showToast(`Error al ocultar: ${error.message}. Ejecuta supabase-fix-schema.sql en Supabase.`, "err");
+        } else {
+            const msg = item.isActive ? "Punto ocultado del mapa." : "Punto visible en el mapa.";
+            showToast(msg, "ok");
+            addChange(
+                item.isActive ? `Ocultó punto del mapa: "${item.title}"` : `Mostró punto del mapa: "${item.title}"`,
+                "Mapa Cultural"
+            );
+            await load();
+        }
     }
 
     async function handleDelete(id: string) {
+        const item = items.find(x => x.id === id);
         if (!confirm("¿Eliminar este punto del mapa? Esta acción no se puede deshacer.")) return;
         const { error } = await supabase.from("mapa_cultural").delete().eq("id", id);
         if (error) showToast(error.message, "err");
-        else { showToast("Punto eliminado.", "ok"); await load(); }
+        else {
+            showToast("Punto eliminado.", "ok");
+            addChange(`Eliminó punto del mapa: "${item?.title ?? id}"`, "Mapa Cultural");
+            await load();
+        }
     }
 
     const activeCount = items.filter(i => i.isActive !== false).length;

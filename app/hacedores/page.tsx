@@ -5,9 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "../../components/layouts/Navbar";
 import { Footer } from "../../components/layouts/Footer";
-import { Search, MapPin, Sparkles, BookOpen, ChevronRight, User } from "lucide-react";
+import { Search, MapPin, Sparkles, BookOpen, ChevronRight, User, Loader2 } from "lucide-react";
 import hacedoresRaw from "../../data/hacedores.json";
 import { fetchHacedores, HacedorData } from "../../lib/db";
+import { useLang } from "../../app/lang-context";
+import T from "../../lib/translations";
 
 type HostCategory = 
     | "Todos" 
@@ -33,14 +35,24 @@ const CATEGORIES: HostCategory[] = [
 ];
 
 export default function HacedoresDirectoryPage() {
-    const [hacedoresList, setHacedoresList] = useState<HacedorData[]>(hacedoresRaw as HacedorData[]);
+    const { lang } = useLang();
+    const [hacedoresList, setHacedoresList] = useState<HacedorData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<HostCategory>("Todos");
 
     useEffect(() => {
         async function loadHacedores() {
-            const data = await fetchHacedores();
-            setHacedoresList(data);
+            setIsLoading(true);
+            try {
+                const data = await fetchHacedores();
+                setHacedoresList(data);
+            } catch {
+                // fallback a los estáticos si hay error de red
+                setHacedoresList(hacedoresRaw as HacedorData[]);
+            } finally {
+                setIsLoading(false);
+            }
         }
         loadHacedores();
     }, []);
@@ -88,14 +100,16 @@ export default function HacedoresDirectoryPage() {
                     <div className="mb-16 text-center max-w-3xl mx-auto">
                         <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-6 animate-pulse">
                             <Sparkles size={14} />
-                            Hacedores de Identidad
+                            {lang === "en" ? "Identity Makers" : "Hacedores de Identidad"}
                         </span>
                         <h1 className="font-outfit text-4xl sm:text-6xl font-black text-gray-900 tracking-tight leading-[0.95] mb-6">
-                            Directorio de <br />
-                            <span className="text-primary">Hacedores Culturales</span>
+                            {lang === "en" ? "Cultural Makers" : "Directorio de"} <br />
+                            <span className="text-primary">{lang === "en" ? "Directory" : "Hacedores Culturales"}</span>
                         </h1>
                         <p className="text-lg text-gray-500 font-medium leading-relaxed">
-                            Conoce a los maestros, artistas y sabios tradicionales que custodian la herencia viva de Barranquilla. Detrás de cada experiencia hay un rostro y una historia de resiliencia.
+                            {lang === "en"
+                                ? "Meet the masters, artists, and traditional sages who safeguard the living heritage of Barranquilla. Behind every experience is a face and a story of resilience."
+                                : "Conoce a los maestros, artistas y sabios tradicionales que custodian la herencia viva de Barranquilla. Detrás de cada experiencia hay un rostro y una historia de resiliencia."}
                         </p>
                     </div>
 
@@ -108,7 +122,7 @@ export default function HacedoresDirectoryPage() {
                             </div>
                             <input
                                 type="text"
-                                placeholder="Buscar por nombre, especialidad o barrio..."
+                                placeholder={lang === "en" ? "Search by name, specialty or neighborhood..." : "Buscar por nombre, especialidad o barrio..."}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-14 pr-6 py-4 rounded-2xl bg-white border border-gray-100 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.05)] text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 text-sm font-medium"
@@ -132,8 +146,15 @@ export default function HacedoresDirectoryPage() {
                         </div>
                     </div>
 
+                    {/* Loading state */}
+                    {isLoading && (
+                        <div className="flex justify-center py-20">
+                            <Loader2 size={32} className="animate-spin text-primary" />
+                        </div>
+                    )}
+
                     {/* Dynamic grid or grouped listing */}
-                    {filteredHacedores.length > 0 ? (
+                    {!isLoading && filteredHacedores.length > 0 ? (
                         <div className="space-y-16">
                             {Object.entries(groupedHacedores).map(([cat, list]) => (
                                 <div key={cat} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -221,7 +242,7 @@ export default function HacedoresDirectoryPage() {
 
                                                     {/* Link indicator */}
                                                     <div className="border-t border-gray-50 pt-4 flex items-center justify-between text-xs font-black uppercase tracking-widest text-gray-900">
-                                                        <span>Ver portafolio</span>
+                                                        <span>{lang === "en" ? "View portfolio" : "Ver portafolio"}</span>
                                                         <ChevronRight size={14} className="text-primary group-hover:translate-x-1 transition-transform duration-300" />
                                                     </div>
                                                 </div>
@@ -231,13 +252,13 @@ export default function HacedoresDirectoryPage() {
                                 </div>
                             ))}
                         </div>
-                    ) : (
+                    ) : !isLoading ? (
                         /* Empty state */
                         <div className="text-center py-20 bg-white/50 backdrop-blur-sm rounded-[2.5rem] border-2 border-dashed border-gray-200 p-8 max-w-xl mx-auto">
-                            <p className="text-gray-400 font-medium italic text-lg mb-2">No se encontraron hacedores</p>
-                            <p className="text-gray-400 text-sm">Prueba ajustando los filtros o tu búsqueda de términos.</p>
+                            <p className="text-gray-400 font-medium italic text-lg mb-2">{lang === "en" ? "No makers found" : "No se encontraron hacedores"}</p>
+                            <p className="text-gray-400 text-sm">{lang === "en" ? "Try adjusting the filters or your search terms." : "Prueba ajustando los filtros o tu búsqueda de términos."}</p>
                         </div>
-                    )}
+                    ) : null}
                 </div>
             </main>
 

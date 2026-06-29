@@ -1,14 +1,19 @@
+"use client";
+
 import React from 'react';
 import Image from 'next/image';
 import { SectionHeader } from '../ui/SectionHeader';
+import { useLang } from '../../app/lang-context';
+import T from '../../lib/translations';
 
 export function CommunitySection() {
+    const { lang } = useLang();
     return (
         <section id="comunidad" className="py-28 bg-[#FFFBF0] overflow-hidden">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
                 <SectionHeader
-                    title="Únete a la Tribu"
-                    subtitle="Exploradores, creativos, nómadas y locales compartiendo juntos la alegría de descubrir Barranquilla."
+                    title={T.community.title[lang]}
+                    subtitle={T.community.subtitle[lang]}
                 />
 
                 <div className="relative mt-20 group cursor-pointer">
@@ -17,9 +22,9 @@ export function CommunitySection() {
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-transparent to-transparent opacity-80" />
 
                         <div className="absolute bottom-10 left-10 right-10 md:bottom-16 md:left-16 md:right-auto bg-white/95 p-10 rounded-[2.5rem] shadow-2xl max-w-lg backdrop-blur-md border border-white">
-                            <h3 className="font-outfit text-4xl font-black text-gray-900 mb-5">Conoce a tu gente</h3>
+                            <h3 className="font-outfit text-4xl font-black text-gray-900 mb-5">{T.community.cardTitle[lang]}</h3>
                             <p className="font-sans text-gray-600 text-[1.1rem] leading-relaxed mb-8">
-                                Las experiencias ComboXplora están diseñadas para la interacción. Rompe el hielo, ríe fuerte y vete a casa con nuevos amigos.
+                                {T.community.cardDesc[lang]}
                             </p>
                             <div className="flex items-center gap-6">
                                 <div className="flex -space-x-4">
@@ -30,7 +35,7 @@ export function CommunitySection() {
                                     ))}
                                 </div>
                                 <div className="font-sans font-bold text-gray-900">
-                                    +1,000 felices
+                                    {T.community.happy[lang]}
                                 </div>
                             </div>
                         </div>

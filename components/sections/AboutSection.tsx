@@ -1,11 +1,16 @@
+"use client";
+
 import React from 'react';
 import Image from 'next/image';
+import { useLang } from '../../app/lang-context';
+import T from '../../lib/translations';
 
 export function AboutSection() {
+    const { lang } = useLang();
     const stats = [
-        { value: "40+", label: "Hacedores Locales" },
-        { value: "100%", label: "Impacto Directo" },
-        { value: "5", label: "Tipos de Experiencia" }
+        { value: "40+",  label: T.about.stat1[lang] },
+        { value: "100%", label: T.about.stat2[lang] },
+        { value: "5",    label: T.about.stat3[lang] },
     ];
 
     return (
@@ -38,16 +43,12 @@ export function AboutSection() {
                     {/* Right: Editorial Typography */}
                     <div className="order-1 lg:order-2">
                         <h2 className="font-outfit text-5xl md:text-6xl font-black text-gray-900 mb-8 tracking-tight leading-[1.1] text-balance">
-                            Más que turismo, es <span className="text-accent italic font-serif font-medium">pertenencia.</span>
+                            {T.about.titleMain[lang]} <span className="text-accent italic font-serif font-medium">{T.about.titleAccent[lang]}</span>
                         </h2>
 
                         <div className="space-y-6 font-sans text-[1.15rem] leading-[1.8] text-gray-500">
-                            <p>
-                                ComboXplora nace de la convicción de que la verdadera esencia de Barranquilla no está en monumentos vacíos, sino en las manos que amasan el millo y las voces que cantan al río.
-                            </p>
-                            <p>
-                                No somos una agencia tradicional. Somos una plataforma impulsada por la comunidad, diseñada para que te sumerjas en la ciudad real, apoyando directamente la economía de nuestros hacedores culturales.
-                            </p>
+                            <p>{T.about.p1[lang]}</p>
+                            <p>{T.about.p2[lang]}</p>
                         </div>
 
                         {/* Elegant Divider */}

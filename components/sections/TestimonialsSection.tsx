@@ -4,9 +4,12 @@ import React, { useRef } from 'react';
 import { SectionHeader } from '../ui/SectionHeader';
 import { TestimonialCard } from '../ui/TestimonialCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLang } from '../../app/lang-context';
+import T from '../../lib/translations';
 
 export function TestimonialsSection() {
     const scrollRef = useRef<HTMLDivElement>(null);
+    const { lang } = useLang();
 
     const testimonials = [
         {
@@ -48,8 +51,8 @@ export function TestimonialsSection() {
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
                     <SectionHeader
-                        title="Historias de Exploradores"
-                        subtitle="No nos creas a nosotros, cree en los viajeros curiosos que ya lo vivieron."
+                        title={T.testimonials.title[lang]}
+                        subtitle={T.testimonials.subtitle[lang]}
                         centered={false}
                     />
                     <div className="hidden md:flex gap-4 pb-4">

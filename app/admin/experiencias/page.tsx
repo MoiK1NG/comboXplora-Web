@@ -8,6 +8,7 @@ import {
     generateId, slugify,
     CATEGORIES, DURATIONS, NEIGHBORHOODS,
 } from "../../../lib/admin-utils";
+import { useChanges } from "../changes-context";
 import {
     Plus, Pencil, Trash2, Eye, EyeOff, X, Save,
     Loader2, ExternalLink, Search, ChevronDown, ChevronUp,
@@ -420,6 +421,7 @@ export default function AdminExperienciasPage() {
     const [toast, setToast] = useState<{ message: string; type: "ok" | "err" } | null>(null);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const supabase = createClient();
+    const { addChange } = useChanges();
 
     const load = useCallback(async () => {
         setIsLoading(true);
@@ -454,6 +456,10 @@ export default function AdminExperienciasPage() {
             const { error } = await supabase.from("experiencias").upsert(payload, { onConflict: "id" });
             if (error) throw error;
             showToast("Experiencia guardada con éxito.", "ok");
+            addChange(
+                isNew ? `Nueva experiencia: "${form.title}"` : `Editó experiencia: "${form.title}"`,
+                "Experiencias"
+            );
             setModalOpen(false);
             await load();
         } catch (e: any) {
@@ -468,9 +474,15 @@ export default function AdminExperienciasPage() {
             .from("experiencias")
             .update({ is_active: !exp.isActive })
             .eq("id", exp.id);
-        if (error) showToast(error.message, "err");
-        else {
-            showToast(exp.isActive ? "Experiencia ocultada del sitio." : "Experiencia visible en el sitio.", "ok");
+        if (error) {
+            showToast(`Error al ocultar: ${error.message}. Ejecuta supabase-fix-schema.sql en Supabase.`, "err");
+        } else {
+            const msg = exp.isActive ? "Experiencia ocultada del sitio." : "Experiencia visible en el sitio.";
+            showToast(msg, "ok");
+            addChange(
+                exp.isActive ? `Ocultó experiencia: "${exp.title}"` : `Mostró experiencia: "${exp.title}"`,
+                "Experiencias"
+            );
             await load();
         }
     }
@@ -479,7 +491,11 @@ export default function AdminExperienciasPage() {
         if (!confirm("¿Eliminar esta experiencia? Esta acción no se puede deshacer.")) return;
         const { error } = await supabase.from("experiencias").delete().eq("id", id);
         if (error) showToast(error.message, "err");
-        else { showToast("Experiencia eliminada.", "ok"); await load(); }
+        else {
+            showToast("Experiencia eliminada.", "ok");
+            addChange(`Eliminó experiencia #${id}`, "Experiencias");
+            await load();
+        }
     }
 
     const activeCount = experiences.filter(e => e.isActive !== false).length;

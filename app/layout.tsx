@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
+import { LangProvider } from "./lang-context";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -31,7 +32,9 @@ export default function RootLayout({
   return (
     <html lang="es" className="scroll-smooth">
       <body className={`${inter.variable} ${outfit.variable} font-sans antialiased text-foreground bg-background`}>
-        {children}
+        <LangProvider>
+          {children}
+        </LangProvider>
       </body>
     </html>
   );

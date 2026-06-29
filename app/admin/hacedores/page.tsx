@@ -7,6 +7,7 @@ import {
     generateId, slugify,
     HACEDOR_CATEGORIES, NEIGHBORHOODS,
 } from "../../../lib/admin-utils";
+import { useChanges } from "../changes-context";
 import {
     Plus, Pencil, Trash2, Eye, EyeOff, X, Save,
     Loader2, ExternalLink, Search, ChevronDown, ChevronUp, User,
@@ -343,6 +344,7 @@ export default function AdminHacedoresPage() {
     const [toast, setToast] = useState<{ message: string; type: "ok" | "err" } | null>(null);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const supabase = createClient();
+    const { addChange } = useChanges();
 
     const load = useCallback(async () => {
         setIsLoading(true);
@@ -376,6 +378,10 @@ export default function AdminHacedoresPage() {
             const { error } = await supabase.from("hacedores").upsert(formToPayload(form), { onConflict: "id" });
             if (error) throw error;
             showToast("Hacedor guardado con éxito.", "ok");
+            addChange(
+                isNew ? `Creó hacedor: "${form.name}"` : `Editó hacedor: "${form.name}"`,
+                "Hacedores"
+            );
             setModalOpen(false);
             await load();
         } catch (e: any) {
@@ -386,16 +392,30 @@ export default function AdminHacedoresPage() {
     }
 
     async function handleToggle(h: HacedorData) {
-        await supabase.from("hacedores").update({ is_active: !h.isActive }).eq("id", h.id);
-        showToast(h.isActive ? "Hacedor ocultado del sitio." : "Hacedor visible en el sitio.", "ok");
-        await load();
+        const { error } = await supabase.from("hacedores").update({ is_active: !h.isActive }).eq("id", h.id);
+        if (error) {
+            showToast(`Error al ocultar: ${error.message}. Ejecuta supabase-fix-schema.sql en Supabase.`, "err");
+        } else {
+            const msg = h.isActive ? "Hacedor ocultado del sitio." : "Hacedor visible en el sitio.";
+            showToast(msg, "ok");
+            addChange(
+                h.isActive ? `Ocultó hacedor: "${h.name}"` : `Mostró hacedor: "${h.name}"`,
+                "Hacedores"
+            );
+            await load();
+        }
     }
 
     async function handleDelete(id: string) {
+        const h = list.find(x => x.id === id);
         if (!confirm("¿Eliminar este hacedor? Esta acción no se puede deshacer.")) return;
         const { error } = await supabase.from("hacedores").delete().eq("id", id);
         if (error) showToast(error.message, "err");
-        else { showToast("Hacedor eliminado.", "ok"); await load(); }
+        else {
+            showToast("Hacedor eliminado.", "ok");
+            addChange(`Eliminó hacedor: "${h?.name ?? id}"`, "Hacedores");
+            await load();
+        }
     }
 
     const activeCount = list.filter(h => h.isActive !== false).length;

@@ -6,12 +6,23 @@ import { SectionHeader } from '../ui/SectionHeader';
 import { ExperienceCard } from '../ui/ExperienceCard';
 import { Button } from '../ui/Button';
 import { fetchExperiences } from '../../lib/db';
+import { useLang } from '../../app/lang-context';
+import T from '../../lib/translations';
 
 type CategoryType = 'Todas' | 'Cultura' | 'Gastronomía' | 'Música' | 'Historia' | 'Comunidad';
 
 export function ExperiencesSection() {
+    const { lang } = useLang();
     const [activeCategory, setActiveCategory] = useState<CategoryType>('Todas');
     const categories: CategoryType[] = ['Todas', 'Cultura', 'Gastronomía', 'Música', 'Historia'];
+    const categoryLabels: Record<CategoryType, string> = {
+        'Todas':      T.experiences.all[lang],
+        'Cultura':    T.experiences.culture[lang],
+        'Gastronomía':T.experiences.gastronomy[lang],
+        'Música':     T.experiences.music[lang],
+        'Historia':   T.experiences.history[lang],
+        'Comunidad':  T.experiences.community[lang],
+    };
 
     type ExperienceCardType = Omit<React.ComponentProps<typeof ExperienceCard>, 'key'> & { id: number | string };
 
@@ -100,8 +111,8 @@ export function ExperiencesSection() {
         <section id="experiencias" className="py-28 bg-[#fafafa]">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
                 <SectionHeader
-                    title="Experiencias Destacadas"
-                    subtitle="Una selección curada de aventuras guiadas por nuestros mejores hacedores culturales."
+                    title={T.experiences.title[lang]}
+                    subtitle={T.experiences.subtitle[lang]}
                 />
 
                 {/* Filter Tabs */}
@@ -115,7 +126,7 @@ export function ExperiencesSection() {
                                 : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300'
                                 }`}
                         >
-                            {cat}
+                            {categoryLabels[cat]}
                         </button>
                     ))}
                 </div>
@@ -129,7 +140,7 @@ export function ExperiencesSection() {
 
                 <div className="mt-20 text-center">
                     <Link href="/experiencias">
-                        <Button variant="secondary" size="lg">Ver Todas las Experiencias</Button>
+                        <Button variant="secondary" size="lg">{T.experiences.seeAll[lang]}</Button>
                     </Link>
                 </div>
             </div>

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { Navbar } from "../../components/layouts/Navbar";
 import { Footer } from "../../components/layouts/Footer";
 import { ExperienceCard } from "../../components/experiences/experience-card";

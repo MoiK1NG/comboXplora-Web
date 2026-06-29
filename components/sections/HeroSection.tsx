@@ -1,10 +1,15 @@
+"use client";
+
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '../ui/Button';
 import { Star } from 'lucide-react';
+import { useLang } from '../../app/lang-context';
+import T from '../../lib/translations';
 
 export function HeroSection() {
+    const { lang } = useLang();
     return (
         <section className="relative min-h-[100vh] flex items-center pt-32 pb-24 overflow-hidden bg-white">
             {/* Premium Minimal Grid Background */}
@@ -23,13 +28,13 @@ export function HeroSection() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
                         </span>
-                        La Nueva Forma de Viajar
+                        {T.hero.badge[lang]}
                     </div>
 
                     <h1 className="font-outfit text-6xl md:text-7xl lg:text-[5.5rem] font-black text-gray-900 leading-[1.02] mb-8 text-balance tracking-tight">
-                        Descubre <br />Barranquilla <br />
+                        {T.hero.headline1[lang]} <br />{T.hero.headline2[lang]} <br />
                         <span className="relative inline-block mt-2">
-                            <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#c79a10]">a Través de su Gente</span>
+                            <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#c79a10]">{T.hero.headline3[lang]}</span>
                             <svg className="absolute w-full h-4 -bottom-1 left-0 text-primary/30 z-0" viewBox="0 0 100 10" preserveAspectRatio="none">
                                 <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="4" fill="transparent" strokeLinecap="round" />
                             </svg>
@@ -37,18 +42,18 @@ export function HeroSection() {
                     </h1>
 
                     <p className="font-sans text-[1.2rem] text-gray-500 mb-12 text-balance max-w-lg leading-[1.7]">
-                        Conecta con locales, hacedores culturales y la verdadera esencia de la ciudad. Vive experiencias inmersivas diseñadas para mentes curiosas.
+                        {T.hero.sub[lang]}
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 mb-14">
                         <Link href="/#experiencias" className="w-full sm:w-auto">
                             <Button size="lg" className="h-16 w-full text-lg shadow-[0_8px_20px_-6px_rgba(244,196,48,0.5)]">
-                                Explorar experiencias
+                                {T.hero.explore[lang]}
                             </Button>
                         </Link>
                         <Link href="/experiencias" className="w-full sm:w-auto">
                             <Button variant="secondary" size="lg" className="h-16 w-full text-lg">
-                                Ver todas
+                                {T.hero.seeAll[lang]}
                             </Button>
                         </Link>
                     </div>
@@ -70,7 +75,7 @@ export function HeroSection() {
                                 {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" strokeWidth={0} />)}
                             </div>
                             <span className="text-sm font-sans font-medium text-gray-600 mt-1">
-                                <span className="font-bold text-gray-900">4.9/5</span> de 500+ viajeros
+                                <span className="font-bold text-gray-900">4.9/5</span> {T.hero.social[lang]}
                             </span>
                         </div>
                     </div>
@@ -99,8 +104,8 @@ export function HeroSection() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" /><circle cx="12" cy="10" r="3" /></svg>
                         </div>
                         <div>
-                            <p className="font-outfit font-black text-gray-900 text-lg">100% Local</p>
-                            <p className="font-sans text-xs text-gray-500 font-medium">Guiado por hacedores</p>
+                            <p className="font-outfit font-black text-gray-900 text-lg">{T.hero.local100[lang]}</p>
+                            <p className="font-sans text-xs text-gray-500 font-medium">{T.hero.localLabel[lang]}</p>
                         </div>
                     </div>
 

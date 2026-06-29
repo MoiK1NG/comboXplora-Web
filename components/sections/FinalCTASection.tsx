@@ -1,8 +1,13 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '../ui/Button';
+import { useLang } from '../../app/lang-context';
+import T from '../../lib/translations';
 
 export function FinalCTASection() {
+    const { lang } = useLang();
     return (
         <section className="bg-primary pt-32 pb-40 px-6 lg:px-8 relative overflow-hidden">
             {/* Decorative Premium Elements */}
@@ -14,24 +19,24 @@ export function FinalCTASection() {
 
             <div className="max-w-4xl mx-auto text-center relative z-10 flex flex-col items-center">
                 <div className="inline-flex items-center px-5 py-2 rounded-full bg-white/30 border border-white/50 text-yellow-900 font-bold text-xs mb-10 uppercase tracking-widest shadow-sm backdrop-blur-sm">
-                    Aventura Asegurada
+                    {T.cta.badge[lang]}
                 </div>
 
                 <h2 className="font-outfit text-6xl md:text-7xl lg:text-[5rem] font-black text-black mb-8 text-balance leading-[1.05] tracking-tight">
-                    ¿Listo para <span className="text-white drop-shadow-md">redescubrir</span> Barranquilla?
+                    {T.cta.title[lang]} <span className="text-white drop-shadow-md">{T.cta.titleAccent[lang]}</span> {T.cta.titleEnd[lang]}
                 </h2>
 
                 <p className="font-sans text-[1.25rem] text-yellow-900/80 mb-14 max-w-2xl mx-auto text-balance leading-relaxed font-medium">
-                    Únete a la nueva generación de viajeros responsables. Aléjate de las trampas para turistas y vive la ciudad como un local más.
+                    {T.cta.sub[lang]}
                 </p>
 
                 <div className="flex flex-col sm:flex-row justify-center gap-6 w-full sm:w-auto">
                     <Link href="/#experiencias" className="w-full sm:w-auto">
                         <Button
                             size="lg"
-                            className="bg-black text-white hover:bg-gray-900 hover:text-primary px-12 py-5 text-[1.15rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] h-20 w-full"
+                            className="bg-black text-white hover:bg-gray-900 hover:text-primary px-12 py-5 text-[1.15rem] shadow-[0_20x_40px_-10px_rgba(0,0,0,0.5)] h-20 w-full"
                         >
-                            Explorar experiencias
+                            {T.cta.explore[lang]}
                         </Button>
                     </Link>
                     <Link href="/experiencias" className="w-full sm:w-auto">
@@ -40,7 +45,7 @@ export function FinalCTASection() {
                             size="lg"
                             className="border-2 border-black/20 text-black hover:bg-black/5 hover:border-black px-12 py-5 text-[1.15rem] transition-colors duration-300 h-20 w-full"
                         >
-                            Ver experiencias
+                            {T.cta.see[lang]}
                         </Button>
                     </Link>
                 </div>

@@ -5,10 +5,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useLang } from '../../app/lang-context';
+import T from '../../lib/translations';
 
 export function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { lang, toggleLang } = useLang();
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -17,11 +20,11 @@ export function Navbar() {
     }, []);
 
     const navLinks = [
-        { name: 'Inicio', href: '/' },
-        { name: 'Experiencias', href: '/experiencias' },
-        { name: 'Mapa Cultural', href: '/mapa-cultural' },
-        { name: 'Hacedores', href: '/hacedores' },
-        { name: 'Postular', href: '/postula-tu-experiencia' },
+        { name: T.nav.home[lang],        href: '/' },
+        { name: T.nav.experiences[lang], href: '/experiencias' },
+        { name: T.nav.culturalMap[lang], href: '/mapa-cultural' },
+        { name: T.nav.makers[lang],      href: '/hacedores' },
+        { name: T.nav.submit[lang],      href: '/postula-tu-experiencia' },
     ];
 
     return (
@@ -51,15 +54,29 @@ export function Navbar() {
                             {link.name}
                         </Link>
                     ))}
+                    {/* Language toggle */}
+                    <button
+                        onClick={toggleLang}
+                        title={lang === "es" ? "Switch to English" : "Cambiar a Español"}
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border transition-all ${isScrolled ? 'border-gray-200 text-gray-700 hover:border-gray-400' : 'border-gray-300/60 text-gray-800 hover:border-gray-500'}`}
+                    >
+                        <span>{lang === "es" ? "🇺🇸 EN" : "🇨🇴 ES"}</span>
+                    </button>
                     <Link href="/#experiencias">
                         <Button variant="primary" size="sm">
-                            Empieza a explorar
+                            {T.nav.startExploring[lang]}
                         </Button>
                     </Link>
                 </div>
 
-                {/* Mobile menu button */}
-                <div className="md:hidden flex items-center">
+                {/* Mobile: lang toggle + menu button */}
+                <div className="md:hidden flex items-center gap-3">
+                    <button
+                        onClick={toggleLang}
+                        className="text-xs font-black px-2 py-1 rounded-full border border-gray-300 text-gray-700"
+                    >
+                        {lang === "es" ? "EN" : "ES"}
+                    </button>
                     <button
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         className="text-gray-900 focus:outline-none"
@@ -85,7 +102,7 @@ export function Navbar() {
                     <div className="pt-2 pb-4">
                         <Link href="/#experiencias" onClick={() => setIsMobileMenuOpen(false)}>
                             <Button variant="primary" className="w-full">
-                                Empieza a explorar
+                                {T.nav.startExploring[lang]}
                             </Button>
                         </Link>
                     </div>

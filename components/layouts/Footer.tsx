@@ -1,8 +1,13 @@
+"use client";
+
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useLang } from '../../app/lang-context';
+import T from '../../lib/translations';
 
 export function Footer() {
+    const { lang } = useLang();
     return (
         <footer className="bg-white text-gray-800 pt-20 pb-10 px-6 lg:px-8 border-t border-gray-100">
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-10 mb-16">
@@ -17,35 +22,35 @@ export function Footer() {
                         />
                     </div>
                     <p className="font-sans text-gray-600 mb-8 leading-relaxed text-balance">
-                        Conectando locales y turistas en auténticas experiencias culturales en Barranquilla, apoyando la economía de hacedores locales.
+                        {T.footer.tagline[lang]}
                     </p>
                 </div>
 
                 {/* Links */}
                 <div>
-                    <h4 className="font-outfit font-black text-xl mb-6 text-gray-900 tracking-wide">Plataforma</h4>
+                    <h4 className="font-outfit font-black text-xl mb-6 text-gray-900 tracking-wide">{T.footer.platform[lang]}</h4>
                     <ul className="space-y-4 font-sans text-gray-600 font-medium">
-                        <li><Link href="/experiencias" className="hover:text-primary transition-colors">Catálogo de Experiencias</Link></li>
-                        <li><Link href="/mapa-cultural" className="hover:text-primary transition-colors">Mapa Cultural</Link></li>
-                        <li><Link href="/hacedores" className="hover:text-primary transition-colors">Hacedores Locales</Link></li>
-                        <li><Link href="/postula-tu-experiencia" className="hover:text-primary transition-colors">Postula tu Experiencia</Link></li>
+                        <li><Link href="/experiencias" className="hover:text-primary transition-colors">{T.footer.experiences[lang]}</Link></li>
+                        <li><Link href="/mapa-cultural" className="hover:text-primary transition-colors">{T.footer.culturalMap[lang]}</Link></li>
+                        <li><Link href="/hacedores" className="hover:text-primary transition-colors">{T.footer.makers[lang]}</Link></li>
+                        <li><Link href="/postula-tu-experiencia" className="hover:text-primary transition-colors">{T.footer.submit[lang]}</Link></li>
                     </ul>
                 </div>
 
                 {/* Legal */}
                 <div>
-                    <h4 className="font-outfit font-black text-xl mb-6 text-gray-900 tracking-wide">Legal</h4>
+                    <h4 className="font-outfit font-black text-xl mb-6 text-gray-900 tracking-wide">{T.footer.legal[lang]}</h4>
                     <ul className="space-y-4 font-sans text-gray-600 font-medium">
-                        <li><Link href="/terminos-y-condiciones" className="hover:text-primary transition-colors">Términos y Condiciones</Link></li>
-                        <li><Link href="/politica-de-privacidad" className="hover:text-primary transition-colors">Política de Privacidad</Link></li>
-                        <li><Link href="/politicas-de-cancelacion" className="hover:text-primary transition-colors">Políticas de Cancelación</Link></li>
-                        <li><Link href="/tratamiento-de-datos" className="hover:text-primary transition-colors">Tratamiento de Datos</Link></li>
+                        <li><Link href="/terminos-y-condiciones" className="hover:text-primary transition-colors">{T.footer.terms[lang]}</Link></li>
+                        <li><Link href="/politica-de-privacidad" className="hover:text-primary transition-colors">{T.footer.privacy[lang]}</Link></li>
+                        <li><Link href="/politicas-de-cancelacion" className="hover:text-primary transition-colors">{T.footer.cancellation[lang]}</Link></li>
+                        <li><Link href="/tratamiento-de-datos" className="hover:text-primary transition-colors">{T.footer.dataPolicy[lang]}</Link></li>
                     </ul>
                 </div>
 
                 {/* Social & Contact */}
                 <div>
-                    <h4 className="font-outfit font-black text-xl mb-6 text-gray-900 tracking-wide">Conecta</h4>
+                    <h4 className="font-outfit font-black text-xl mb-6 text-gray-900 tracking-wide">{T.footer.connect[lang]}</h4>
                     <p className="font-sans text-gray-600 mb-6 font-medium">
                         comboxplora@gmail.com
                     </p>
@@ -61,8 +66,8 @@ export function Footer() {
             </div>
 
             <div className="max-w-7xl mx-auto border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center font-sans text-sm text-gray-500 gap-4 font-medium">
-                <p>© {new Date().getFullYear()} ComboXplora. Todos los derechos reservados.</p>
-                <p>Hecho con ❤️ en Barranquilla, Colombia</p>
+                <p>© {new Date().getFullYear()} ComboXplora. {T.footer.rights[lang]}</p>
+                <p>{T.footer.made[lang]}</p>
             </div>
         </footer>
     );

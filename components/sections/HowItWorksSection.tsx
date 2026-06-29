@@ -1,13 +1,18 @@
+"use client";
+
 import React from 'react';
 import { Search, Users, Sparkles } from 'lucide-react';
 import { SectionHeader } from '../ui/SectionHeader';
+import { useLang } from '../../app/lang-context';
+import T from '../../lib/translations';
 
 export function HowItWorksSection() {
+    const { lang } = useLang();
     const steps = [
         {
             icon: <Search size={40} className="text-gray-900 group-hover:text-primary transition-colors duration-500" />,
-            title: "Descubre",
-            description: "Explora nuestra curaduría de experiencias auténticas guiadas por hacedores culturales locales.",
+            title: T.howItWorks.step1Title[lang],
+            description: T.howItWorks.step1Desc[lang],
             glow: "bg-primary/20",
             hoverAccent: "group-hover:border-primary group-hover:bg-[#fffdf7]",
             badgeColor: "group-hover:bg-primary group-hover:text-black group-hover:border-primary",
@@ -15,8 +20,8 @@ export function HowItWorksSection() {
         },
         {
             icon: <Users size={40} className="text-gray-900 group-hover:text-accent transition-colors duration-500" />,
-            title: "Conecta",
-            description: "Reserva tu cupo y únete a un grupo reducido de personas curiosas como tú, listos para explorar.",
+            title: T.howItWorks.step2Title[lang],
+            description: T.howItWorks.step2Desc[lang],
             glow: "bg-accent/20",
             hoverAccent: "group-hover:border-accent group-hover:bg-[#f2f8f7]",
             badgeColor: "group-hover:bg-accent group-hover:text-white group-hover:border-accent",
@@ -24,8 +29,8 @@ export function HowItWorksSection() {
         },
         {
             icon: <Sparkles size={40} className="text-gray-900 group-hover:text-[#F4C430] transition-colors duration-500" />,
-            title: "Vive",
-            description: "Sumérgete en la cultura, haz nuevos amigos, aprende algo nuevo y crea recuerdos inolvidables.",
+            title: T.howItWorks.step3Title[lang],
+            description: T.howItWorks.step3Desc[lang],
             glow: "bg-orange-100",
             hoverAccent: "group-hover:border-[#F4C430] group-hover:bg-[#fffdf7]",
             badgeColor: "group-hover:bg-[#F4C430] group-hover:text-black group-hover:border-[#F4C430]",
@@ -37,8 +42,8 @@ export function HowItWorksSection() {
         <section id="como-funciona" className="py-32 bg-white relative overflow-hidden">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
                 <SectionHeader
-                    title="Tu próxima historia empieza aquí"
-                    subtitle="Tres simples pasos para sumergirte en la verdadera Barranquilla, apoyando el patrimonio local."
+                    title={T.howItWorks.title[lang]}
+                    subtitle={T.howItWorks.subtitle[lang]}
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-28 relative">

@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { createClient } from "../../lib/supabase-client";
 import {
   LayoutDashboard, Map, Users, Star, ExternalLink,
   Menu, X, ChevronRight, BookOpen, Building2,
   MessageSquare, ClipboardList, LogOut, User,
+  Upload, Clock, CheckCircle2, ChevronDown as ChevronDownIcon, Loader2,
 } from "lucide-react";
+import { ChangesProvider, useChanges } from "./changes-context";
 
 /* ─────────────────────────────────────────────────────
    Tipos de navegación
@@ -265,6 +267,110 @@ function TopBar({ onOpenMenu, onLogout }: { onOpenMenu: () => void; onLogout: ()
 }
 
 /* ─────────────────────────────────────────────────────
+   Publish Bar — barra flotante con resumen de cambios
+───────────────────────────────────────────────────── */
+function PublishBar() {
+  const { changes, clearChanges } = useChanges();
+  const [publishing, setPublishing] = useState(false);
+  const [published, setPublished] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+
+  const handlePublish = useCallback(async () => {
+    setPublishing(true);
+    try {
+      await fetch("/api/admin/revalidate", { method: "POST" });
+      setPublished(true);
+      setTimeout(() => {
+        setPublished(false);
+        clearChanges();
+      }, 3000);
+    } catch {
+      // silently ignore
+    } finally {
+      setPublishing(false);
+    }
+  }, [clearChanges]);
+
+  if (changes.length === 0) return null;
+
+  return (
+    <>
+      {/* Resumen modal */}
+      {showSummary && (
+        <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSummary(false)} />
+          <div className="relative z-10 w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-outfit font-black text-gray-900 text-lg">Cambios pendientes</h3>
+              <button onClick={() => setShowSummary(false)} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="px-6 py-4 max-h-72 overflow-y-auto space-y-2">
+              {changes.map(c => (
+                <div key={c.id} className="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#F4C430] mt-2 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 leading-snug">{c.description}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wider">{c.section}</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] text-gray-400 flex-shrink-0">
+                    <Clock size={10} />
+                    {c.timestamp.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="px-6 py-4 bg-gray-50 flex gap-3">
+              <button
+                onClick={handlePublish}
+                disabled={publishing || published}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#F4C430] hover:bg-[#E3B520] text-gray-900 font-black text-sm transition-all disabled:opacity-60 shadow-sm"
+              >
+                {publishing ? <><Loader2 size={14} className="animate-spin" /> Publicando…</> :
+                 published  ? <><CheckCircle2 size={14} /> ¡Publicado!</> :
+                              <><Upload size={14} /> Publicar en el sitio</>}
+              </button>
+              <button onClick={() => setShowSummary(false)}
+                className="px-5 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-white transition-all">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-[200] flex items-center justify-between gap-4 bg-gray-950 text-white px-5 py-4 shadow-2xl border-t border-white/5">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-2 h-2 rounded-full bg-[#F4C430] animate-pulse flex-shrink-0" />
+          <p className="text-sm font-semibold truncate">
+            {changes.length} cambio{changes.length > 1 ? "s" : ""} listo{changes.length > 1 ? "s" : ""} para publicar
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={() => setShowSummary(true)}
+            className="flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-xl hover:bg-white/5"
+          >
+            Ver resumen <ChevronDownIcon size={12} />
+          </button>
+          <button
+            onClick={handlePublish}
+            disabled={publishing || published}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F4C430] hover:bg-[#E3B520] text-gray-900 font-black text-xs transition-all disabled:opacity-60"
+          >
+            {publishing ? <><Loader2 size={13} className="animate-spin" /> Publicando…</> :
+             published  ? <><CheckCircle2 size={13} /> ¡Publicado!</> :
+                          <><Upload size={13} /> Publicar en el sitio →</>}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ─────────────────────────────────────────────────────
    Root Layout
    IMPORTANTE: el login page está dentro de /admin/*
    entonces TAMBIÉN se renderiza con este layout.
@@ -275,17 +381,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
 
-  // ¿Estamos en la página de login?
   const isLoginPage = pathname === "/admin/login";
 
-  // Si estamos en login, NO iniciar con isAuthChecking=true (evita el loader)
   const [isAuthChecking, setIsAuthChecking] = useState(!isLoginPage);
   const [isAuthed, setIsAuthed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string>();
 
   useEffect(() => {
-    // Si estamos en login, no hacer nada — el middleware ya redirige si hay sesión
     if (isLoginPage) return;
 
     const supabase = createClient();
@@ -294,7 +397,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setUserEmail(data.user.email ?? undefined);
         setIsAuthed(true);
       } else {
-        // Sin sesión → redirigir al login (refuerzo del middleware)
         router.replace("/admin/login");
       }
       setIsAuthChecking(false);
@@ -308,37 +410,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.refresh();
   }
 
-  // ── CASO 1: Estamos en /admin/login ──────────────────
-  // Renderizar solo el formulario, sin ningún chrome admin.
-  if (isLoginPage) {
-    return <>{children}</>;
-  }
+  if (isLoginPage) return <>{children}</>;
+  if (isAuthChecking) return <AuthLoader />;
+  if (!isAuthed) return <AuthLoader />;
 
-  // ── CASO 2: Verificando sesión ────────────────────────
-  if (isAuthChecking) {
-    return <AuthLoader />;
-  }
-
-  // ── CASO 3: Sin sesión (redirección en progreso) ──────
-  if (!isAuthed) {
-    return <AuthLoader />;          // muestra loader mientras router.replace carga
-  }
-
-  // ── CASO 4: Autenticado → layout completo ─────────────
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        userEmail={userEmail}
-        onLogout={handleLogout}
-      />
-      <div className="flex-1 flex flex-col min-w-0 overflow-auto">
-        <TopBar onOpenMenu={() => setSidebarOpen(true)} onLogout={handleLogout} />
-        <main className="flex-1 p-5 lg:p-7 max-w-full">
-          {children}
-        </main>
+    <ChangesProvider>
+      <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          userEmail={userEmail}
+          onLogout={handleLogout}
+        />
+        <div className="flex-1 flex flex-col min-w-0 overflow-auto pb-16">
+          <TopBar onOpenMenu={() => setSidebarOpen(true)} onLogout={handleLogout} />
+          <main className="flex-1 p-5 lg:p-7 max-w-full">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+      <PublishBar />
+    </ChangesProvider>
   );
 }

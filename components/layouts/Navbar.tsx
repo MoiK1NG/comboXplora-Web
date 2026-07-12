@@ -9,11 +9,11 @@ import { useLang } from '../../app/lang-context';
 import T from '../../lib/translations';
 import type { Lang } from '../../lib/translations';
 
-const LANG_OPTIONS: { code: Lang; flag: string; label: string }[] = [
-    { code: "es", flag: "🇨🇴", label: "ES" },
-    { code: "en", flag: "🇺🇸", label: "EN" },
-    { code: "fr", flag: "🇫🇷", label: "FR" },
-    { code: "pt", flag: "🇧🇷", label: "PT" },
+const LANG_OPTIONS: { code: Lang; flagCode: string; label: string }[] = [
+    { code: "es", flagCode: "co", label: "ES" },
+    { code: "en", flagCode: "us", label: "EN" },
+    { code: "fr", flagCode: "fr", label: "FR" },
+    { code: "pt", flagCode: "br", label: "PT" },
 ];
 
 export function Navbar() {
@@ -83,7 +83,8 @@ export function Navbar() {
                             onClick={() => setIsLangOpen(prev => !prev)}
                             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border transition-all ${isScrolled ? 'border-gray-200 text-gray-700 hover:border-gray-400' : 'border-gray-300/60 text-gray-800 hover:border-gray-500'}`}
                         >
-                            <span>{current.flag} {current.label}</span>
+                            <img src={`https://flagcdn.com/w20/${current.flagCode}.png`} alt={current.label} className="w-5 h-auto rounded-sm" />
+                            <span>{current.label}</span>
                             <ChevronDown size={12} className={`transition-transform ${isLangOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {isLangOpen && (
@@ -94,7 +95,7 @@ export function Navbar() {
                                         onClick={() => { setLang(opt.code); setIsLangOpen(false); }}
                                         className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider hover:bg-gray-50 transition-colors ${lang === opt.code ? 'text-primary bg-primary/5' : 'text-gray-700'}`}
                                     >
-                                        <span>{opt.flag}</span>
+                                        <img src={`https://flagcdn.com/w20/${opt.flagCode}.png`} alt={opt.label} className="w-5 h-auto rounded-sm" />
                                         <span>{opt.label}</span>
                                     </button>
                                 ))}
@@ -116,7 +117,8 @@ export function Navbar() {
                             onClick={() => setIsLangOpen(prev => !prev)}
                             className="flex items-center gap-1 text-xs font-black px-2 py-1 rounded-full border border-gray-300 text-gray-700"
                         >
-                            <span>{current.flag} {current.label}</span>
+                            <img src={`https://flagcdn.com/w20/${current.flagCode}.png`} alt={current.label} className="w-5 h-auto rounded-sm" />
+                            <span>{current.label}</span>
                             <ChevronDown size={10} className={`transition-transform ${isLangOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {isLangOpen && (
@@ -127,7 +129,7 @@ export function Navbar() {
                                         onClick={() => { setLang(opt.code); setIsLangOpen(false); }}
                                         className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase hover:bg-gray-50 transition-colors ${lang === opt.code ? 'text-primary bg-primary/5' : 'text-gray-700'}`}
                                     >
-                                        <span>{opt.flag}</span>
+                                        <img src={`https://flagcdn.com/w20/${opt.flagCode}.png`} alt={opt.label} className="w-5 h-auto rounded-sm" />
                                         <span>{opt.label}</span>
                                     </button>
                                 ))}

@@ -79,7 +79,7 @@ const T = {
     happy:      { es: "+1,000 felices",         en: "+1,000 happy",                fr: "+1 000 heureux",                 pt: "+1.000 felizes" },
   },
   testimonials: {
-    title:    { es: "Historias de Exploradores",  en: "Explorer Stories",                fr: "Histoires d'Explorateurs",        pt: "Histórias de Exploradores" },
+    title:    { es: "Historias de Xplorers",  en: "Xplorer Stories",                fr: "Histoires de Xplorers",        pt: "Histórias de Xplorers" },
     subtitle: { es: "No nos creas a nosotros, cree en los viajeros curiosos que ya lo vivieron.", en: "Don't just take our word for it — hear from the curious travelers who already lived it.", fr: "Ne nous croyez pas sur parole — écoutez les voyageurs curieux qui l'ont déjà vécu.", pt: "Não acredite apenas em nós — ouça os viajantes curiosos que já viveram isso." },
   },
   cta: {

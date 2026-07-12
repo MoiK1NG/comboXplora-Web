@@ -7,7 +7,7 @@ function getResend() {
   return new Resend(key);
 }
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@comboxplora.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'comboxplora@gmail.com';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const APP_NAME = 'ComboXplora';
 

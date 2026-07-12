@@ -174,7 +174,7 @@ export default function PostulaExperienciaPage() {
                   {/* Barrio + Tipo */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Barrio</label>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Barrio donde realiza la experiencia</label>
                       <input value={form.neighborhood} onChange={set("neighborhood")} placeholder="Barrio Abajo..." className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-white/10 text-white placeholder-gray-600 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F4C430]/40 focus:border-[#F4C430]/50 transition-all" />
                     </div>
                     <div>

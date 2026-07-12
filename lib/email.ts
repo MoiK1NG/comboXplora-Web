@@ -145,6 +145,53 @@ export async function sendPostulacionNotification(data: {
 }
 
 // ──────────────────────────────────────────────
+// POSTULACIÓN — CONFIRMACIÓN AL USUARIO
+// ──────────────────────────────────────────────
+
+export async function sendPostulacionConfirmation(data: {
+  name: string;
+  email: string;
+  experience_title?: string;
+}) {
+  const content = `
+    <h2 style="margin:0 0 8px;font-size:20px;color:#111827;">¡Recibimos tu postulación! 🎉</h2>
+    <p style="margin:0 0 20px;color:#6b7280;font-size:15px;line-height:1.6;">
+      Hola <strong style="color:#111827;">${data.name}</strong>, gracias por querer ser parte de ComboXplora.
+      Tu propuesta ha sido recibida y será revisada por nuestro equipo de curaduría.
+    </p>
+    ${data.experience_title ? `
+    <div style="background:#f9fafb;border-left:4px solid #F4C430;padding:14px 18px;border-radius:0 8px 8px 0;margin-bottom:20px;">
+      <p style="margin:0;font-size:13px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Experiencia propuesta</p>
+      <p style="margin:6px 0 0;font-size:16px;color:#111827;font-weight:800;">${data.experience_title}</p>
+    </div>` : ''}
+    <p style="margin:0 0 12px;color:#374151;font-size:14px;line-height:1.7;">
+      <strong>¿Qué pasa ahora?</strong>
+    </p>
+    <ol style="margin:0 0 24px;padding-left:20px;color:#6b7280;font-size:14px;line-height:2;">
+      <li>Nuestro equipo revisará tu propuesta (máx. 5 días hábiles).</li>
+      <li>Nos pondremos en contacto contigo para co-crear la experiencia juntos.</li>
+      <li>¡La publicamos y empezamos a recibir reservas!</li>
+    </ol>
+    <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">
+      Si tienes preguntas, responde este correo o escríbenos al WhatsApp
+      <a href="https://wa.me/573122475789" style="color:#F4C430;font-weight:700;">+57 312 247 5789</a>.
+    </p>
+    <div style="margin-top:24px;">
+      <a href="https://combo-xplora-web.vercel.app" style="display:inline-block;background:#F4C430;color:#111827;font-weight:700;font-size:13px;padding:12px 24px;border-radius:8px;text-decoration:none;">
+        Ver ComboXplora
+      </a>
+    </div>
+  `;
+
+  return getResend().emails.send({
+    from: FROM_EMAIL,
+    to: data.email,
+    subject: `Tu postulación en ComboXplora fue recibida ✅`,
+    html: emailWrapper(content),
+  });
+}
+
+// ──────────────────────────────────────────────
 // EMPRESA INTERESADA
 // ──────────────────────────────────────────────
 

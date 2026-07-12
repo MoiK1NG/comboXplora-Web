@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendPostulacionNotification } from '../../../lib/email';
+import { sendPostulacionNotification, sendPostulacionConfirmation } from '../../../lib/email';
 import type { PostulacionPayload } from '../../../lib/types';
 
 export async function POST(request: Request) {
   try {
     const body: PostulacionPayload = await request.json();
-    const { name, email, phone, neighborhood, experience_type, experience_title, experience_description, why_join, social_links } = body;
+    const {
+      name, email, phone, neighborhood, experience_type,
+      experience_title, experience_description, why_join, social_links,
+    } = body;
 
     if (!name?.trim() || !email?.trim()) {
-      return NextResponse.json(
-        { error: 'Nombre y email son obligatorios.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Nombre y email son obligatorios.' }, { status: 400 });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,39 +21,61 @@ export async function POST(request: Request) {
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Prefer service role key (bypasses RLS). Fall back to anon key.
+    const supabaseKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (supabaseUrl && serviceKey) {
-      const supabase = createClient(supabaseUrl, serviceKey);
-      const { error: dbError } = await supabase
-        .from('postulaciones')
-        .insert({
-          name: name.trim(),
-          email: email.trim(),
-          phone,
-          neighborhood,
-          experience_type,
-          experience_title,
-          experience_description,
-          why_join,
-          social_links,
-        });
-
-      if (dbError) {
-        console.error('[postulacion API] Supabase error:', dbError.message);
-      }
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('[postulacion] Supabase env vars missing');
+      return NextResponse.json(
+        { error: 'Configuración del servidor incompleta. Contacta al administrador.' },
+        { status: 500 }
+      );
     }
 
-    if (process.env.RESEND_API_KEY) {
-      await sendPostulacionNotification({ name, email, phone, neighborhood, experience_type, experience_title, experience_description, why_join, social_links });
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { error: dbError } = await supabase.from('postulaciones').insert({
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      phone: phone?.trim() || null,
+      neighborhood: neighborhood?.trim() || null,
+      experience_type: experience_type || null,
+      experience_title: experience_title?.trim() || null,
+      experience_description: experience_description?.trim() || null,
+      why_join: why_join?.trim() || null,
+      social_links: social_links?.trim() || null,
+      status: 'nueva',
+    });
+
+    if (dbError) {
+      console.error('[postulacion] DB insert error:', dbError.message, dbError.code);
+      return NextResponse.json(
+        { error: 'No se pudo guardar la postulación. Inténtalo de nuevo.' },
+        { status: 500 }
+      );
     }
+
+    // Send emails (fire-and-forget — don't fail the request if email fails)
+    const emailPayload = {
+      name: name.trim(), email: email.trim(), phone, neighborhood,
+      experience_type, experience_title, experience_description,
+      why_join, social_links,
+    };
+    Promise.allSettled([
+      sendPostulacionNotification(emailPayload),
+      sendPostulacionConfirmation(emailPayload),
+    ]).then((results) => {
+      results.forEach((r, i) => {
+        if (r.status === 'rejected') {
+          console.error(`[postulacion] Email ${i === 0 ? 'admin' : 'user'} error:`, r.reason);
+        }
+      });
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[postulacion API] Error:', err);
-    return NextResponse.json(
-      { error: 'Error interno del servidor.' },
-      { status: 500 }
-    );
+    console.error('[postulacion] Unexpected error:', err);
+    return NextResponse.json({ error: 'Error interno del servidor.' }, { status: 500 });
   }
 }

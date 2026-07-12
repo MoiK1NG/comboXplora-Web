@@ -242,12 +242,13 @@ INSERT INTO experiencias (
  'Café ARETÉ – Carrera 50 #80-260, Barranquilla',
  '3 horas',
  '{"lat": 10.9985, "lng": -74.8083}'::jsonb,
- '/images/experience_culture_1772730369365.png',
+ '/images/experiencias/portada_mascaras.jpg',
  'Más que un taller de pintura, esta es una invitación a vivir el Carnaval de Barranquilla desde la creatividad y la tradición. Durante tres horas conocerás el significado de los animales presentes en las máscaras del Carnaval mientras pintas tu propia pieza de papel maché con los colores y símbolos del Caribe. Compartirás un espacio de inspiración, aprendizaje y conexión con otros participantes, llevándote una creación única hecha por ti y un recuerdo inolvidable de nuestra cultura.',
  ARRAY['Máscara de papel maché lista para pintar','Pinturas acrílicas','Pinceles y materiales artísticos','Activación cultural sobre los animales del Carnaval','Espacio de inspiración y narración cultural','Galería colectiva de las obras','Llévate a casa tu propia obra de arte tradicional'],
  ARRAY['Conocer el simbolismo de los animales del Carnaval de Barranquilla','Pintar y personalizar tu propia máscara','Explorar tu creatividad a través del arte','Compartir una experiencia cultural en un ambiente acogedor','Llevarte una obra creada por ti como recuerdo','Conectar con la identidad y el patrimonio del Caribe colombiano'],
  ARRAY['Llega 10 minutos antes del inicio de la experiencia','Usa ropa cómoda','Si lo prefieres puedes traer un delantal','Los refrigerios se solicitan directamente en Café ARETÉ','Ven con disposición para crear y experimentar','No necesitas conocimientos previos de pintura'],
- ARRAY[]::text[], true, true, NOW()),
+ ARRAY['/images/experiencias/mascaras/mascaras-1.jpg','/images/experiencias/mascaras/mascaras-2.jpg','/images/experiencias/mascaras/mascaras-3.jpg','/images/experiencias/mascaras/mascaras-4.jpg','/images/experiencias/mascaras/mascaras-5.jpg','/images/experiencias/mascaras/mascaras-6.jpg','/images/experiencias/mascaras/mascaras-7.jpg','/images/experiencias/mascaras/mascaras-8.jpg','/images/experiencias/mascaras/mascaras-9.jpg','/images/experiencias/mascaras/mascaras-10.jpg','/images/experiencias/mascaras/mascaras-11.jpg','/images/experiencias/mascaras/mascaras-12.jpg','/images/experiencias/mascaras/mascaras-13.jpg','/images/experiencias/mascaras/mascaras-14.jpg','/images/experiencias/mascaras/mascaras-15.jpg','/images/experiencias/mascaras/mascaras-16.jpg'],
+ true, true, NOW()),
 
 -- 2. Legado de Matronas: Aprende a atarte un turbante
 ('exp_turban01',
@@ -260,12 +261,13 @@ INSERT INTO experiencias (
  'Por confirmar',
  '2 horas',
  '{"lat": 10.9667, "lng": -74.8112}'::jsonb,
- '/images/experience_community_1772729851298.png',
+ '/images/experiencias/portada_turbantes.jpg',
  'Vive un encuentro con la tradición afrocaribeña a través del arte de llevar un turbante. En esta experiencia conocerás la historia, el simbolismo y el legado cultural que representa esta práctica ancestral, mientras aprendes diferentes técnicas para usarlo y hacerlo parte de tu identidad. Más que un taller, es un espacio para conectar con la memoria, el autocuidado y la riqueza cultural de nuestras matronas.',
  ARRAY['Introducción al legado cultural de los turbantes','Conversatorio sobre identidad y tradición afrocaribeña','Demostración de diferentes formas de usar turbantes','Acompañamiento durante la práctica','Un turbante para poner en práctica lo aprendido y llevar contigo'],
  ARRAY['Conocer la historia y el significado cultural del turbante','Aprender diferentes técnicas para usarlo','Escuchar relatos y saberes transmitidos por generaciones','Compartir un espacio de aprendizaje e intercambio cultural','Llevarte una nueva forma de conectar con la identidad afrocaribeña'],
  ARRAY['Lleva un espejo de mano o utiliza la cámara de tu celular','Lleva moñas o ganchos para facilitar la práctica','Usa ropa cómoda','Lleva un termo con agua para mantenerte hidratado','Si la actividad es al aire libre utiliza protector solar y sombrilla'],
- ARRAY[]::text[], true, true, NOW()),
+ ARRAY['/images/experiencias/turbantes/turbantes-1.jpg','/images/experiencias/turbantes/turbantes-2.jpg','/images/experiencias/turbantes/turbantes-3.jpg','/images/experiencias/turbantes/turbantes-4.jpg','/images/experiencias/turbantes/turbantes-5.jpg','/images/experiencias/turbantes/turbantes-6.jpg','/images/experiencias/turbantes/turbantes-7.jpg','/images/experiencias/turbantes/turbantes-8.jpg','/images/experiencias/turbantes/turbantes-9.jpg','/images/experiencias/turbantes/turbantes-10.jpg','/images/experiencias/turbantes/turbantes-11.jpg','/images/experiencias/turbantes/turbantes-12.jpg','/images/experiencias/turbantes/turbantes-13.jpg','/images/experiencias/turbantes/turbantes-14.jpg','/images/experiencias/turbantes/turbantes-15.jpg','/images/experiencias/turbantes/turbantes-16.jpg','/images/experiencias/turbantes/turbantes-17.jpg','/images/experiencias/turbantes/turbantes-18.jpg','/images/experiencias/turbantes/turbantes-19.jpg'],
+ true, true, NOW()),
 
 -- 3. Dulces con Historia: Legado de Matronas
 ('exp_dulces01',
@@ -278,12 +280,13 @@ INSERT INTO experiencias (
  'Por confirmar',
  '4 horas',
  '{"lat": 10.9956, "lng": -74.8113}'::jsonb,
- '/images/experience_gastronomy_1772729379901.png',
+ '/images/experiencias/portada_dulces.jpg',
  'Adéntrate en la cocina tradicional del Caribe colombiano junto a una matrona portadora de saberes ancestrales. En esta experiencia conocerás las historias, técnicas e ingredientes que dan vida a los dulces tradicionales afrocolombianos, mientras disfrutas de una demostración en vivo, conversas con su protagonista y descubres por qué cada receta es parte del patrimonio cultural de nuestra región.',
  ARRAY['Recorrido desde el punto de encuentro hasta el espacio de la experiencia','Taller gastronómico en vivo con una matrona tradicional','Narrativas sobre la tradición culinaria afrocaribeña','Demostración de la preparación de dulces tradicionales','Degustación de las preparaciones realizadas','Espacio de conversación e intercambio con la matrona','Encuentro con otros participantes de la experiencia'],
  ARRAY['Conocer la historia y el legado de las matronas del Caribe','Descubrir los secretos de los dulces tradicionales afrocolombianos','Aprender sobre técnicas e ingredientes ancestrales','Conectar con la cultura viva de Barranquilla a través de la gastronomía','Compartir una experiencia auténtica junto a una portadora de tradición'],
  ARRAY['Lleva ropa cómoda y fresca','Lleva un termo con agua','Usa protector solar o sombrilla si es necesario','Llega puntual al punto de encuentro','Ven con disposición para aprender preguntar y disfrutar cada historia y cada sabor'],
- ARRAY[]::text[], true, false, NOW()),
+ ARRAY['/images/experiencias/dulces/dulces-1.jpg','/images/experiencias/dulces/dulces-2.jpg','/images/experiencias/dulces/dulces-3.jpg','/images/experiencias/dulces/dulces-4.jpg','/images/experiencias/dulces/dulces-5.jpg','/images/experiencias/dulces/dulces-6.jpg','/images/experiencias/dulces/dulces-7.jpg','/images/experiencias/dulces/dulces-8.jpg','/images/experiencias/dulces/dulces-9.jpg','/images/experiencias/dulces/dulces-10.jpg','/images/experiencias/dulces/dulces-11.jpg','/images/experiencias/dulces/dulces-12.jpg','/images/experiencias/dulces/dulces-13.jpg','/images/experiencias/dulces/dulces-14.jpg','/images/experiencias/dulces/dulces-15.jpg','/images/experiencias/dulces/dulces-16.jpg','/images/experiencias/dulces/dulces-17.jpg'],
+ true, false, NOW()),
 
 -- 4. Macondo en Barranquilla: Tras las huellas de Gabo
 ('exp_macond01',
@@ -296,12 +299,13 @@ INSERT INTO experiencias (
  'Plaza San Nicolás, Barranquilla',
  '3 horas',
  '{"lat": 10.9972, "lng": -74.8049}'::jsonb,
- '/images/experience_historia_1772729674439.png',
+ '/images/experiencias/portada_macondo.jpg',
  'Déjate llevar por un recorrido que une literatura, historia y cultura para descubrir la Barranquilla que marcó la vida de Gabriel García Márquez. Caminarás por lugares emblemáticos del centro histórico mientras escuchas relatos, disfrutas sabores tradicionales y participas en momentos creativos inspirados en el universo del realismo mágico. Más que una caminata, es una invitación a vivir la ciudad como si cada calle contara una historia.',
  ARRAY['Desayuno costeño','Café de especialidad','Recorrido guiado por el Centro Histórico','Narración y lecturas inspiradas en la obra de Gabriel García Márquez','Kit simbólico de escritura','Souvenir','Registro fotográfico de la experiencia'],
  ARRAY['Descubrir la relación entre Barranquilla y Gabriel García Márquez','Recorrer lugares que hicieron parte de su historia','Escuchar relatos y fragmentos literarios durante el recorrido','Disfrutar los sabores tradicionales del Caribe','Participar en un ejercicio creativo de escritura','Llevarte un recuerdo que conecte con la experiencia vivida'],
  ARRAY['Usa ropa y calzado cómodos para caminar','Lleva agua para mantenerte hidratado','Usa protector solar o sombrero','Llega puntual al punto de encuentro','Trae tu celular o cámara para registrar el recorrido','Ven con disposición para caminar escuchar y dejarte sorprender por las historias de la ciudad'],
- ARRAY[]::text[], true, true, NOW()),
+ ARRAY['/images/experiencias/macondo/macondo-1.jpg','/images/experiencias/macondo/macondo-2.jpg','/images/experiencias/macondo/macondo-3.jpg','/images/experiencias/macondo/macondo-4.jpg','/images/experiencias/macondo/macondo-5.jpg','/images/experiencias/macondo/macondo-6.jpg','/images/experiencias/macondo/macondo-7.jpg','/images/experiencias/macondo/macondo-8.jpg','/images/experiencias/macondo/macondo-9.jpg','/images/experiencias/macondo/macondo-10.jpg','/images/experiencias/macondo/macondo-11.jpg','/images/experiencias/macondo/macondo-12.jpg','/images/experiencias/macondo/macondo-13.jpg','/images/experiencias/macondo/macondo-14.jpg','/images/experiencias/macondo/macondo-15.jpg','/images/experiencias/macondo/macondo-16.jpg','/images/experiencias/macondo/macondo-17.jpg','/images/experiencias/macondo/macondo-18.jpg','/images/experiencias/macondo/macondo-19.jpg','/images/experiencias/macondo/macondo-20.jpg'],
+ true, true, NOW()),
 
 -- 5. Cultura Picotera en las Nieves
 ('exp_picote01',
@@ -314,12 +318,13 @@ INSERT INTO experiencias (
  'Por confirmar',
  '3 horas',
  '{"lat": 10.9810, "lng": -74.8067}'::jsonb,
- '/images/experience_music_1772729653199.png',
+ '/images/experiencias/portada_picos.jpg',
  'Vive una experiencia auténtica recorriendo el barrio Las Nieves, cuna de la cultura picotera en Barranquilla. A través de historias, música en vivo y encuentros con hacedores locales, conocerás el origen de los picós y el papel que han tenido en la vida de los barrios populares. Durante el recorrido disfrutarás de sabores tradicionales, un paseo en carricoche y una demostración práctica para sentir de cerca el ritmo que ha marcado generaciones de barranquilleros.',
  ARRAY['Recorrido cultural guiado por el barrio Las Nieves','Narración sobre la historia de la cultura picotera','Encuentro con hacedores y conocedores locales','Demostración práctica de un picó tradicional','Paseo en carricoche','Degustación de arroz de lisa','Visita a un picó emblemático del barrio','Manilla de recuerdo de la experiencia'],
  ARRAY['Conocer la historia de los picós y las verbenas','Escuchar relatos de quienes mantienen viva esta tradición','Aprender cómo funciona un picó tradicional','Disfrutar una experiencia musical auténtica','Recorrer el barrio Las Nieves desde una mirada cultural','Degustar uno de los platos más representativos de Barranquilla','Conectar con la identidad musical y popular del Caribe'],
  ARRAY['Llega puntual al punto de encuentro','Usa ropa y zapatos cómodos','Lleva protector solar','Trae gorra o sombrilla','Lleva un termo con agua para mantenerte hidratado','Ten tu celular con suficiente batería para registrar la experiencia'],
- ARRAY[]::text[], true, false, NOW());
+ ARRAY['/images/experiencias/picos/picos-1.jpg','/images/experiencias/picos/picos-2.jpg','/images/experiencias/picos/picos-3.jpg','/images/experiencias/picos/picos-4.jpg','/images/experiencias/picos/picos-5.jpg','/images/experiencias/picos/picos-6.jpg','/images/experiencias/picos/picos-7.jpg','/images/experiencias/picos/picos-8.jpg','/images/experiencias/picos/picos-9.jpg','/images/experiencias/picos/picos-10.jpg','/images/experiencias/picos/picos-11.jpg','/images/experiencias/picos/picos-12.jpg','/images/experiencias/picos/picos-13.jpg','/images/experiencias/picos/picos-14.jpg','/images/experiencias/picos/picos-15.jpg','/images/experiencias/picos/picos-16.jpg'],
+ true, false, NOW());
 
 -- ================================================================
 -- Verificación — debe mostrar 18 hacedores y 5 experiencias

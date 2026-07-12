@@ -6,40 +6,36 @@ import {
 } from "react";
 import type { Lang } from "../lib/translations";
 
+const LANGS: Lang[] = ["es", "en", "fr", "pt"];
+
 interface LangCtx {
     lang: Lang;
-    toggleLang: () => void;
+    setLang: (l: Lang) => void;
 }
 
-const LangContext = createContext<LangCtx>({ lang: "es", toggleLang: () => {} });
+const LangContext = createContext<LangCtx>({ lang: "es", setLang: () => {} });
 
 export function LangProvider({ children }: { children: ReactNode }) {
-    const [lang, setLang] = useState<Lang>("es");
+    const [lang, setLangState] = useState<Lang>("es");
 
-    // Restore from localStorage on mount
     useEffect(() => {
         const stored = localStorage.getItem("comboxplora_lang") as Lang | null;
-        if (stored === "en" || stored === "es") setLang(stored);
+        if (stored && (LANGS as string[]).includes(stored)) setLangState(stored);
     }, []);
 
-    const toggleLang = useCallback(() => {
-        setLang(prev => {
-            const next: Lang = prev === "es" ? "en" : "es";
-            localStorage.setItem("comboxplora_lang", next);
-            // Also set cookie so server components can read it
-            document.cookie = `lang=${next};path=/;max-age=31536000;SameSite=Lax`;
-            return next;
-        });
+    const setLang = useCallback((l: Lang) => {
+        setLangState(l);
+        localStorage.setItem("comboxplora_lang", l);
+        document.cookie = `lang=${l};path=/;max-age=31536000;SameSite=Lax`;
     }, []);
 
     return (
-        <LangContext.Provider value={{ lang, toggleLang }}>
+        <LangContext.Provider value={{ lang, setLang }}>
             {children}
         </LangContext.Provider>
     );
 }
 
 export function useLang() {
-    const { lang, toggleLang } = useContext(LangContext);
-    return { lang, toggleLang };
+    return useContext(LangContext);
 }

@@ -1,22 +1,42 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useLang } from '../../app/lang-context';
 import T from '../../lib/translations';
+import type { Lang } from '../../lib/translations';
+
+const LANG_OPTIONS: { code: Lang; flag: string; label: string }[] = [
+    { code: "es", flag: "🇨🇴", label: "ES" },
+    { code: "en", flag: "🇺🇸", label: "EN" },
+    { code: "fr", flag: "🇫🇷", label: "FR" },
+    { code: "pt", flag: "🇧🇷", label: "PT" },
+];
 
 export function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { lang, toggleLang } = useLang();
+    const [isLangOpen, setIsLangOpen] = useState(false);
+    const langRef = useRef<HTMLDivElement>(null);
+    const { lang, setLang } = useLang();
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (langRef.current && !langRef.current.contains(e.target as Node)) {
+                setIsLangOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const navLinks = [
@@ -26,6 +46,8 @@ export function Navbar() {
         { name: T.nav.makers[lang],      href: '/hacedores' },
         { name: T.nav.submit[lang],      href: '/postula-tu-experiencia' },
     ];
+
+    const current = LANG_OPTIONS.find(o => o.code === lang)!;
 
     return (
         <nav
@@ -47,21 +69,39 @@ export function Navbar() {
                 <div className="hidden md:flex items-center space-x-8">
                     {navLinks.map((link) => (
                         <Link
-                            key={link.name}
+                            key={link.href}
                             href={link.href}
                             className={`font-sans font-medium hover:text-primary transition-colors ${isScrolled ? 'text-gray-800' : 'text-gray-900 drop-shadow-sm'}`}
                         >
                             {link.name}
                         </Link>
                     ))}
-                    {/* Language toggle */}
-                    <button
-                        onClick={toggleLang}
-                        title={lang === "es" ? "Switch to English" : "Cambiar a Español"}
-                        className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border transition-all ${isScrolled ? 'border-gray-200 text-gray-700 hover:border-gray-400' : 'border-gray-300/60 text-gray-800 hover:border-gray-500'}`}
-                    >
-                        <span>{lang === "es" ? "🇺🇸 EN" : "🇨🇴 ES"}</span>
-                    </button>
+
+                    {/* Language dropdown */}
+                    <div ref={langRef} className="relative">
+                        <button
+                            onClick={() => setIsLangOpen(prev => !prev)}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border transition-all ${isScrolled ? 'border-gray-200 text-gray-700 hover:border-gray-400' : 'border-gray-300/60 text-gray-800 hover:border-gray-500'}`}
+                        >
+                            <span>{current.flag} {current.label}</span>
+                            <ChevronDown size={12} className={`transition-transform ${isLangOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isLangOpen && (
+                            <div className="absolute right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50 min-w-[100px]">
+                                {LANG_OPTIONS.map(opt => (
+                                    <button
+                                        key={opt.code}
+                                        onClick={() => { setLang(opt.code); setIsLangOpen(false); }}
+                                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider hover:bg-gray-50 transition-colors ${lang === opt.code ? 'text-primary bg-primary/5' : 'text-gray-700'}`}
+                                    >
+                                        <span>{opt.flag}</span>
+                                        <span>{opt.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     <Link href="/#experiencias">
                         <Button variant="primary" size="sm">
                             {T.nav.startExploring[lang]}
@@ -69,14 +109,31 @@ export function Navbar() {
                     </Link>
                 </div>
 
-                {/* Mobile: lang toggle + menu button */}
+                {/* Mobile: lang dropdown + menu button */}
                 <div className="md:hidden flex items-center gap-3">
-                    <button
-                        onClick={toggleLang}
-                        className="text-xs font-black px-2 py-1 rounded-full border border-gray-300 text-gray-700"
-                    >
-                        {lang === "es" ? "EN" : "ES"}
-                    </button>
+                    <div ref={langRef} className="relative">
+                        <button
+                            onClick={() => setIsLangOpen(prev => !prev)}
+                            className="flex items-center gap-1 text-xs font-black px-2 py-1 rounded-full border border-gray-300 text-gray-700"
+                        >
+                            <span>{current.flag} {current.label}</span>
+                            <ChevronDown size={10} className={`transition-transform ${isLangOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isLangOpen && (
+                            <div className="absolute right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50 min-w-[90px]">
+                                {LANG_OPTIONS.map(opt => (
+                                    <button
+                                        key={opt.code}
+                                        onClick={() => { setLang(opt.code); setIsLangOpen(false); }}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase hover:bg-gray-50 transition-colors ${lang === opt.code ? 'text-primary bg-primary/5' : 'text-gray-700'}`}
+                                    >
+                                        <span>{opt.flag}</span>
+                                        <span>{opt.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     <button
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         className="text-gray-900 focus:outline-none"
@@ -91,7 +148,7 @@ export function Navbar() {
                 <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg py-4 px-6 flex flex-col space-y-4 font-sans font-medium text-gray-800">
                     {navLinks.map((link) => (
                         <Link
-                            key={link.name}
+                            key={link.href}
                             href={link.href}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className="py-2 hover:text-primary transition-colors"

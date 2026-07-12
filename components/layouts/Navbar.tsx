@@ -20,7 +20,8 @@ export function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLangOpen, setIsLangOpen] = useState(false);
-    const langRef = useRef<HTMLDivElement>(null);
+    const desktopLangRef = useRef<HTMLDivElement>(null);
+    const mobileLangRef = useRef<HTMLDivElement>(null);
     const { lang, setLang } = useLang();
 
     useEffect(() => {
@@ -31,7 +32,10 @@ export function Navbar() {
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (langRef.current && !langRef.current.contains(e.target as Node)) {
+            const target = e.target as Node;
+            const insideDesktop = desktopLangRef.current?.contains(target);
+            const insideMobile = mobileLangRef.current?.contains(target);
+            if (!insideDesktop && !insideMobile) {
                 setIsLangOpen(false);
             }
         };
@@ -78,7 +82,7 @@ export function Navbar() {
                     ))}
 
                     {/* Language dropdown */}
-                    <div ref={langRef} className="relative">
+                    <div ref={desktopLangRef} className="relative">
                         <button
                             onClick={() => setIsLangOpen(prev => !prev)}
                             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border transition-all ${isScrolled ? 'border-gray-200 text-gray-700 hover:border-gray-400' : 'border-gray-300/60 text-gray-800 hover:border-gray-500'}`}
@@ -112,7 +116,7 @@ export function Navbar() {
 
                 {/* Mobile: lang dropdown + menu button */}
                 <div className="md:hidden flex items-center gap-3">
-                    <div ref={langRef} className="relative">
+                    <div ref={mobileLangRef} className="relative">
                         <button
                             onClick={() => setIsLangOpen(prev => !prev)}
                             className="flex items-center gap-1 text-xs font-black px-2 py-1 rounded-full border border-gray-300 text-gray-700"

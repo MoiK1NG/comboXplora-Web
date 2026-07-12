@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Clock, MapPin, Tag, MessageCircle } from "lucide-react";
 import { Experience } from "../../lib/types";
@@ -68,11 +69,19 @@ export function ExperienceHero({ experience }: ExperienceHeroProps) {
 
                     {/* Image Container */}
                     <div className="order-1 lg:order-2 w-full aspect-[4/3] relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
-                        <div className="absolute inset-0 bg-gray-200">
-                            <div className="w-full h-full bg-[#F4C430]/10 flex items-center justify-center text-gray-400">
-                                [Imagen Hero: {experience.coverImage.split('/').pop()}]
+                        {experience.coverImage ? (
+                            <Image
+                                src={experience.coverImage}
+                                alt={experience.title}
+                                fill
+                                className="object-cover"
+                                priority
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300">
+                                <Tag className="w-16 h-16" />
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

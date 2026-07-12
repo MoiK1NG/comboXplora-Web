@@ -8,31 +8,12 @@ import { Footer } from "../../components/layouts/Footer";
 import { Search, MapPin, Sparkles, BookOpen, ChevronRight, User, Loader2 } from "lucide-react";
 import hacedoresRaw from "../../data/hacedores.json";
 import { fetchHacedores, HacedorData } from "../../lib/db";
+import { HACEDOR_CATEGORIES } from "../../lib/admin-utils";
 import { useLang } from "../../app/lang-context";
 import T from "../../lib/translations";
 
-type HostCategory = 
-    | "Todos" 
-    | "Cocina tradicional" 
-    | "Artesanía" 
-    | "Música" 
-    | "Danza" 
-    | "Narración" 
-    | "Tradición oral" 
-    | "Patrimonio" 
-    | "Arte urbano";
-
-const CATEGORIES: HostCategory[] = [
-    "Todos",
-    "Cocina tradicional",
-    "Artesanía",
-    "Música",
-    "Danza",
-    "Narración",
-    "Tradición oral",
-    "Patrimonio",
-    "Arte urbano",
-];
+const CATEGORIES = ["Todos", ...HACEDOR_CATEGORIES] as const;
+type HostCategory = (typeof CATEGORIES)[number];
 
 export default function HacedoresDirectoryPage() {
     const { lang } = useLang();

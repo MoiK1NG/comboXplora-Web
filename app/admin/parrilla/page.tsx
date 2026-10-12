@@ -7,7 +7,7 @@ import { ConfirmDialog } from "../../../components/admin/ConfirmDialog";
 import {
   Plus, X, Save, Loader2, Search, CalendarDays, CheckCircle2, Undo2,
   Trash2, Edit2, ExternalLink, Sparkles, Ban, Send, Instagram, ArrowRight,
-  Eye, ChevronLeft, ChevronRight, Copy, Check, ImageOff,
+  Eye, ChevronLeft, ChevronRight, Copy, Check, ImageOff, Download,
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────
@@ -375,6 +375,59 @@ function PiezaPanel({
 /* ─────────────────────────────────────────────────────
    Visor: la publicación tal como va a salir
 ───────────────────────────────────────────────────── */
+// ZIP sin compresión (método "store"): las láminas ya son JPG, comprimirlas no
+// ahorra nada y así no sumamos una dependencia solo para esto.
+const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
+  let c = n;
+  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+  return c >>> 0;
+});
+function crc32(data: Uint8Array) {
+  let c = 0xffffffff;
+  for (const b of data) c = CRC_TABLE[(c ^ b) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+function zipStore(files: { name: string; data: Uint8Array }[]): Blob {
+  const partes: BlobPart[] = [];
+  const central: BlobPart[] = [];
+  let offset = 0;
+  let centralSize = 0;
+  for (const f of files) {
+    const nombre = new TextEncoder().encode(f.name);
+    const crc = crc32(f.data);
+    const local = new DataView(new ArrayBuffer(30));
+    local.setUint32(0, 0x04034b50, true);
+    local.setUint16(4, 20, true);
+    local.setUint32(14, crc, true);
+    local.setUint32(18, f.data.length, true);
+    local.setUint32(22, f.data.length, true);
+    local.setUint16(26, nombre.length, true);
+    partes.push(local.buffer, nombre, f.data as Uint8Array<ArrayBuffer>);
+    const cen = new DataView(new ArrayBuffer(46));
+    cen.setUint32(0, 0x02014b50, true);
+    cen.setUint16(4, 20, true);
+    cen.setUint16(6, 20, true);
+    cen.setUint32(16, crc, true);
+    cen.setUint32(20, f.data.length, true);
+    cen.setUint32(24, f.data.length, true);
+    cen.setUint16(28, nombre.length, true);
+    cen.setUint32(42, offset, true);
+    central.push(cen.buffer, nombre);
+    offset += 30 + nombre.length + f.data.length;
+    centralSize += 46 + nombre.length;
+  }
+  const fin = new DataView(new ArrayBuffer(22));
+  fin.setUint32(0, 0x06054b50, true);
+  fin.setUint16(8, files.length, true);
+  fin.setUint16(10, files.length, true);
+  fin.setUint32(12, centralSize, true);
+  fin.setUint32(16, offset, true);
+  return new Blob([...partes, ...central, fin.buffer], { type: "application/zip" });
+}
+
+const slugDe = (s: string) =>
+  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+
 function Visor({
   item, onClose, onEdit, acciones,
 }: {
@@ -385,6 +438,7 @@ function Visor({
 }) {
   const [idx, setIdx] = useState(0);
   const [copiado, setCopiado] = useState(false);
+  const [descarga, setDescarga] = useState<"nada" | "bajando" | "listo" | "error">("nada");
   const fotos = item?.assets ?? [];
 
   useEffect(() => {
@@ -402,6 +456,28 @@ function Visor({
   const actual = Math.min(idx, Math.max(fotos.length - 1, 0));
   const p = pilarInfo(item.pilar);
   const e = estadoInfo(item.estado);
+
+  async function descargarTodo() {
+    if (!item || !fotos.length) return;
+    setDescarga("bajando");
+    try {
+      const base = `${item.fecha_programada ?? "sin-fecha"}-${slugDe(item.titulo)}`;
+      const files = await Promise.all(fotos.map(async (url, i) => {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Lámina ${i + 1}: ${res.status}`);
+        return { name: `${base}-${String(i + 1).padStart(2, "0")}.jpg`, data: new Uint8Array(await res.arrayBuffer()) };
+      }));
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(zipStore(files));
+      a.download = `${base}.zip`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+      setDescarga("listo");
+    } catch {
+      setDescarga("error");
+    }
+    setTimeout(() => setDescarga("nada"), 2500);
+  }
 
   async function copiar() {
     if (!item?.caption) return;
@@ -461,6 +537,15 @@ function Visor({
                   <img src={src} alt="" className="w-14 h-[70px] object-cover" />
                 </button>
               ))}
+            </div>
+          )}
+          {fotos.length > 0 && (
+            <div className="px-4 pb-4">
+              <button onClick={descargarTodo} disabled={descarga === "bajando"}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-[#F4C430] text-gray-900 text-sm font-bold hover:brightness-95 disabled:opacity-60">
+                {descarga === "bajando" ? <Loader2 size={16} className="animate-spin" /> : descarga === "listo" ? <Check size={16} /> : <Download size={16} />}
+                {descarga === "bajando" ? "Preparando…" : descarga === "listo" ? "Descargado" : descarga === "error" ? "No se pudo descargar, prueba otra vez" : `Descargar todo (${fotos.length} láminas)`}
+              </button>
             </div>
           )}
         </div>

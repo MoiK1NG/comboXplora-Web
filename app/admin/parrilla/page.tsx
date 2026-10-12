@@ -6,7 +6,7 @@ import { Toast } from "../../../components/admin/Toast";
 import { ConfirmDialog } from "../../../components/admin/ConfirmDialog";
 import {
   Plus, X, Save, Loader2, Search, CalendarDays, CheckCircle2, Undo2,
-  Trash2, Edit2, ExternalLink, Sparkles, Ban, Send, Instagram,
+  Trash2, Edit2, ExternalLink, Sparkles, Ban, Send, Instagram, ArrowRight,
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────
@@ -90,6 +90,14 @@ const TABS: { key: string; label: string; estados: Estado[] }[] = [
   { key: "publicadas", label: "Publicadas",    estados: ["publicada"] },
   { key: "descartadas",label: "Descartadas",   estados: ["descartada"] },
 ];
+
+/* Avances dentro de producción: un paso por etapa, sin saltarse la auditoría */
+const AVANCES: Partial<Record<Estado, { a: Estado; label: string; mensaje: string }>> = {
+  producir:  { a: "borrador",        label: "Borrador listo",           mensaje: "Pieza en borrador." },
+  borrador:  { a: "auditado",        label: "Auditada sin bloqueantes", mensaje: "Pieza auditada." },
+  auditado:  { a: "pieza_propuesta", label: "Proponer publicación",     mensaje: "Pieza propuesta. Queda por aprobar." },
+  aprobada:  { a: "publicada",       label: "Marcar publicada",         mensaje: "Pieza marcada como publicada." },
+};
 
 /* Ritmo y mix vigentes (contenido/criterio/criterio.md) */
 const PIEZAS_POR_PILAR_MES = 2;
@@ -425,6 +433,9 @@ export default function AdminParrillaPage() {
       out.pieza_aprobada_at = ahora;
       out.aprobado_por = userEmail;
     }
+    if (data.estado === "publicada" && prev === "aprobada") {
+      out.publicada_at = ahora;
+    }
     return out;
   }
 
@@ -641,7 +652,7 @@ export default function AdminParrillaPage() {
                 </div>
 
                 {/* Puntos de aprobación y avances rápidos */}
-                {(item.estado === "tema_propuesto" || item.estado === "pieza_propuesta" || item.estado === "idea") && (
+                {item.estado !== "publicada" && item.estado !== "descartada" && (
                   <div className="flex flex-wrap gap-2 px-5 pb-4">
                     {item.estado === "tema_propuesto" && (
                       <>
@@ -671,6 +682,12 @@ export default function AdminParrillaPage() {
                       <button onClick={() => cambiarEstado(item, "tema_propuesto", "Tema propuesto. Queda por aprobar.")}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-bold transition-all">
                         <Send size={14} /> Proponer como tema
+                      </button>
+                    )}
+                    {AVANCES[item.estado] && (
+                      <button onClick={() => cambiarEstado(item, AVANCES[item.estado]!.a, AVANCES[item.estado]!.mensaje)}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-bold transition-all">
+                        <ArrowRight size={14} /> {AVANCES[item.estado]!.label}
                       </button>
                     )}
                     <button onClick={() => cambiarEstado(item, "descartada", "Pieza descartada.")}

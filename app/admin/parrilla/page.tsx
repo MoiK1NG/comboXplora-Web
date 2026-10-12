@@ -68,6 +68,12 @@ const ESTADOS: { value: Estado; label: string; className: string }[] = [
   { value: "descartada",      label: "Descartada",         className: "bg-gray-50 text-gray-400 border-gray-200" },
 ];
 
+const ORIGENES = [
+  { value: "manual",   label: "Manual" },
+  { value: "radar",    label: "Radar" },
+  { value: "selector", label: "Selector" },
+];
+
 const FORMATOS = [
   { value: "carrusel", label: "Carrusel" },
   { value: "reel",     label: "Reel" },
@@ -234,6 +240,14 @@ function PiezaPanel({
           {/* 2. Por qué */}
           <fieldset className="space-y-3">
             {legend(2, "Por qué esta pieza", "bg-blue-100 text-blue-700")}
+            {isNew && (
+              <div>
+                <label className={labelCls}>Origen</label>
+                <select className={inputCls} value={form.origen ?? "manual"} onChange={(e) => set("origen", e.target.value)}>
+                  {ORIGENES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+            )}
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className={labelCls}>Nota (0-10)</label>
@@ -245,6 +259,11 @@ function PiezaPanel({
                 <input className={inputCls} value={form.fuente_url ?? ""} onChange={(e) => set("fuente_url", str(e.target.value))}
                   placeholder="https://www.instagram.com/p/…" />
               </div>
+            </div>
+            <div>
+              <label className={labelCls}>Fecha de la fuente</label>
+              <input type="date" className={inputCls} value={form.fuente_fecha ?? ""}
+                onChange={(e) => set("fuente_fecha", str(e.target.value))} />
             </div>
             <div>
               <label className={labelCls}>Hueco que cubre</label>
@@ -415,7 +434,7 @@ export default function AdminParrillaPage() {
     const { id, created_at, ...rest } = data;
     void created_at;
     const { error } = isNew
-      ? await supabase.from("contenido_piezas").insert({ ...rest, origen: "manual", estado: "idea" })
+      ? await supabase.from("contenido_piezas").insert({ ...rest, origen: rest.origen ?? "manual", estado: "idea" })
       : await supabase.from("contenido_piezas").update(rest).eq("id", id as string);
     if (error) showToast(error.message, "err");
     else {

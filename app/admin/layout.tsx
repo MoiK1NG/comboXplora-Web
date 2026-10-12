@@ -10,6 +10,7 @@ import {
   Menu, X, ChevronRight, BookOpen, Building2,
   MessageSquare, ClipboardList, LogOut, User,
   Upload, Clock, CheckCircle2, ChevronDown as ChevronDownIcon, Loader2,
+  CalendarDays,
 } from "lucide-react";
 import { ChangesProvider, useChanges } from "./changes-context";
 
@@ -49,6 +50,12 @@ const NAV_SECTIONS: NavSection[] = [
       { href: "/admin/postulaciones", label: "Postulaciones", icon: <ClipboardList size={17} /> },
     ],
   },
+  {
+    title: "Marketing",
+    items: [
+      { href: "/admin/parrilla", label: "Parrilla de contenido", icon: <CalendarDays size={17} /> },
+    ],
+  },
 ];
 
 const SECTION_CRUMB_MAP: Record<string, string> = {
@@ -59,6 +66,7 @@ const SECTION_CRUMB_MAP: Record<string, string> = {
   empresas: "Empresas",
   contacto: "Contacto",
   postulaciones: "Postulaciones",
+  parrilla: "Parrilla de contenido",
 };
 
 /* ─────────────────────────────────────────────────────

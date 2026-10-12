@@ -7,6 +7,7 @@ import { ConfirmDialog } from "../../../components/admin/ConfirmDialog";
 import {
   Plus, X, Save, Loader2, Search, CalendarDays, CheckCircle2, Undo2,
   Trash2, Edit2, ExternalLink, Sparkles, Ban, Send, Instagram, ArrowRight,
+  Eye, ChevronLeft, ChevronRight, Copy, Check, ImageOff,
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────
@@ -100,7 +101,10 @@ const AVANCES: Partial<Record<Estado, { a: Estado; label: string; mensaje: strin
 };
 
 /* Ritmo y mix vigentes (contenido/criterio/criterio.md) */
-const PIEZAS_POR_PILAR_MES = 2;
+/* Modo pausa (experiencias en pausa, contenido/criterio/criterio.md): 6 de Notoriedad
+   y 2 de Hacedores al mes. Cuando vuelvan las experiencias: 2 por pilar. */
+const MODO = "pausa";
+const META_MES: Record<Pilar, number> = { xplorers: 0, hacedores: 2, empresas: 0, notoriedad: 6 };
 const ESTADOS_QUE_CUENTAN: Estado[] = [
   "producir", "borrador", "auditado", "pieza_propuesta", "aprobada", "publicada",
 ];
@@ -369,6 +373,150 @@ function PiezaPanel({
 }
 
 /* ─────────────────────────────────────────────────────
+   Visor: la publicación tal como va a salir
+───────────────────────────────────────────────────── */
+function Visor({
+  item, onClose, onEdit, acciones,
+}: {
+  item: Pieza | null;
+  onClose: () => void;
+  onEdit: (p: Pieza) => void;
+  acciones: (p: Pieza) => React.ReactNode;
+}) {
+  const [idx, setIdx] = useState(0);
+  const [copiado, setCopiado] = useState(false);
+  const fotos = item?.assets ?? [];
+
+  useEffect(() => {
+    if (!item) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") setIdx((i) => Math.min(i + 1, fotos.length - 1));
+      if (e.key === "ArrowLeft") setIdx((i) => Math.max(i - 1, 0));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [item, fotos.length, onClose]);
+
+  if (!item) return null;
+  const actual = Math.min(idx, Math.max(fotos.length - 1, 0));
+  const p = pilarInfo(item.pilar);
+  const e = estadoInfo(item.estado);
+
+  async function copiar() {
+    if (!item?.caption) return;
+    await navigator.clipboard.writeText(item.caption);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  }
+
+  const bloque = (titulo: string, contenido: string | null, extra?: React.ReactNode) =>
+    contenido ? (
+      <section>
+        <div className="flex items-center justify-between mb-1.5">
+          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{titulo}</h4>
+          {extra}
+        </div>
+        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{contenido}</p>
+      </section>
+    ) : null;
+
+  return (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-6">
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-6xl max-h-[94vh] bg-white rounded-3xl shadow-2xl overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row">
+        {/* Láminas */}
+        <div className="lg:w-[52%] bg-gray-950 flex flex-col">
+          <div className="relative flex-1 flex items-center justify-center p-4 min-h-[320px]">
+            {fotos.length ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={fotos[actual]} alt={`Lámina ${actual + 1}`} className="max-h-[55vh] lg:max-h-[70vh] w-auto rounded-2xl object-contain" />
+            ) : (
+              <div className="text-gray-500 text-sm flex flex-col items-center gap-2">
+                <ImageOff size={32} /> Esta pieza todavía no tiene imágenes.
+              </div>
+            )}
+            {fotos.length > 1 && (
+              <>
+                <button onClick={() => setIdx(Math.max(actual - 1, 0))} disabled={actual === 0} title="Anterior"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/90 text-gray-900 disabled:opacity-30">
+                  <ChevronLeft size={20} />
+                </button>
+                <button onClick={() => setIdx(Math.min(actual + 1, fotos.length - 1))} disabled={actual === fotos.length - 1} title="Siguiente"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/90 text-gray-900 disabled:opacity-30">
+                  <ChevronRight size={20} />
+                </button>
+                <span className="absolute top-6 right-6 px-3 py-1 rounded-full bg-black/60 text-white text-xs font-bold">
+                  {actual + 1}/{fotos.length}
+                </span>
+              </>
+            )}
+          </div>
+          {fotos.length > 1 && (
+            <div className="flex gap-2 px-4 pb-4 overflow-x-auto">
+              {fotos.map((src, i) => (
+                <button key={src} onClick={() => setIdx(i)}
+                  className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${i === actual ? "border-[#F4C430]" : "border-transparent opacity-60 hover:opacity-100"}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" className="w-14 h-[70px] object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Información */}
+        <div className="lg:w-[48%] flex flex-col lg:min-h-0">
+          <div className="flex items-start justify-between gap-3 px-6 pt-6 pb-4 border-b border-gray-100">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                {p && <Pill className={p.className}>{p.label}</Pill>}
+                {e && <Pill className={e.className}>{e.label}</Pill>}
+              </div>
+              <h3 className="font-outfit text-lg font-black text-gray-900 mt-2 leading-snug">{item.titulo}</h3>
+              <p className="text-xs text-gray-400 mt-1 flex flex-wrap items-center gap-x-2">
+                {item.fecha_programada && <span className="flex items-center gap-1"><CalendarDays size={11} />{fechaCorta(item.fecha_programada)}</span>}
+                {item.formato && <span>· {FORMATOS.find((f) => f.value === item.formato)?.label}</span>}
+                {fotos.length > 0 && <span>· {fotos.length} {fotos.length === 1 ? "imagen" : "láminas"}</span>}
+              </p>
+            </div>
+            <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0"><X size={18} /></button>
+          </div>
+
+          <div className="flex-1 lg:overflow-y-auto px-6 py-5 space-y-5">
+            {bloque("Caption", item.caption,
+              item.caption ? (
+                <button onClick={copiar} className="flex items-center gap-1 text-[11px] font-bold text-gray-500 hover:text-gray-900">
+                  {copiado ? <><Check size={12} /> Copiado</> : <><Copy size={12} /> Copiar</>}
+                </button>
+              ) : undefined)}
+            {bloque("Gancho", item.gancho)}
+            {bloque("Láminas / guion", item.borrador)}
+            {bloque("Auditoría del editor jefe", item.auditoria)}
+            {bloque("Por qué esta pieza", item.motivo)}
+            {item.fuente_url && (
+              <section>
+                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Fuente principal</h4>
+                <a href={item.fuente_url} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:underline break-all">{item.fuente_url}</a>
+              </section>
+            )}
+            {bloque("Notas internas", item.notas_admin)}
+          </div>
+
+          <div className="border-t border-gray-100 px-6 py-4 flex flex-wrap items-center gap-2">
+            {acciones(item)}
+            <button onClick={() => onEdit(item)}
+              className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-bold transition-all">
+              <Edit2 size={14} /> Editar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────
    Página
 ───────────────────────────────────────────────────── */
 export default function AdminParrillaPage() {
@@ -380,6 +528,7 @@ export default function AdminParrillaPage() {
   const [tab, setTab] = useState("aprobar");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Partial<Pieza> | null>(null);
+  const [visorId, setVisorId] = useState<string | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -508,7 +657,7 @@ export default function AdminParrillaPage() {
           <h1 className="font-outfit text-2xl font-black text-gray-900">Parrilla de contenido</h1>
           <p className="text-sm text-gray-400 mt-0.5 flex items-start gap-1.5">
             <Instagram size={13} className="mt-[3px] flex-shrink-0" />
-            <span>@comboxplora · 2 piezas por semana · 25% por pilar</span>
+            <span>@comboxplora · 2 piezas por semana · modo {MODO}: 6 Notoriedad + 2 Hacedores al mes</span>
           </p>
         </div>
         <button
@@ -532,13 +681,13 @@ export default function AdminParrillaPage() {
       {/* Balance del mes */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-          <CalendarDays size={12} /> Mix de {mesLabel} · meta {PIEZAS_POR_PILAR_MES} por pilar
+          <CalendarDays size={12} /> Mix de {mesLabel} · modo {MODO}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {balance.map((b) => (
             <div key={b.value} className={`rounded-xl border p-3 ${b.className}`}>
               <div className="font-outfit text-xl font-black">
-                {b.count}<span className="text-sm opacity-50">/{PIEZAS_POR_PILAR_MES}</span>
+                {b.count}<span className="text-sm opacity-50">/{META_MES[b.value]}</span>
               </div>
               <div className="text-[11px] font-bold uppercase tracking-wider">{b.label}</div>
             </div>
@@ -610,6 +759,13 @@ export default function AdminParrillaPage() {
             return (
               <div key={item.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-4 px-5 py-4">
+                  {item.assets?.length ? (
+                    <button onClick={() => setVisorId(item.id)} title="Ver publicación"
+                      className="flex-shrink-0 w-16 h-20 rounded-xl overflow-hidden bg-gray-100 hover:ring-2 hover:ring-[#F4C430] transition-all">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.assets[0]} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ) : null}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       {p && <Pill className={p.className}>{p.label}</Pill>}
@@ -618,7 +774,9 @@ export default function AdminParrillaPage() {
                         <span className="text-[11px] font-black text-gray-500">{String(item.nota).replace(".", ",")}/10</span>
                       )}
                     </div>
-                    <p className="font-outfit font-black text-gray-900 text-sm mt-2 leading-snug">{item.titulo}</p>
+                    <button onClick={() => setVisorId(item.id)} className="text-left font-outfit font-black text-gray-900 text-sm mt-2 leading-snug hover:underline">
+                      {item.titulo}
+                    </button>
                     <div className="text-xs text-gray-400 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                       {item.fecha_programada && <span className="flex items-center gap-1"><CalendarDays size={10} />{fechaCorta(item.fecha_programada)}</span>}
                       {item.formato && <span>· {FORMATOS.find((f) => f.value === item.formato)?.label}</span>}
@@ -640,6 +798,10 @@ export default function AdminParrillaPage() {
                         <ExternalLink size={15} />
                       </a>
                     )}
+                    <button title="Ver publicación" onClick={() => setVisorId(item.id)}
+                      className="p-2 rounded-lg hover:bg-amber-50 text-gray-300 hover:text-amber-600 transition-colors">
+                      <Eye size={15} />
+                    </button>
                     <button title="Editar" onClick={() => { setIsNew(false); setSelected(item); }}
                       className="p-2 rounded-lg hover:bg-blue-50 text-gray-300 hover:text-blue-500 transition-colors">
                       <Edit2 size={15} />
@@ -653,7 +815,45 @@ export default function AdminParrillaPage() {
 
                 {/* Puntos de aprobación y avances rápidos */}
                 {item.estado !== "publicada" && item.estado !== "descartada" && (
-                  <div className="flex flex-wrap gap-2 px-5 pb-4">
+                  <div className="flex flex-wrap gap-2 px-5 pb-4">{accionesDe(item)}</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <Visor
+        item={items.find((i) => i.id === visorId) ?? null}
+        onClose={() => setVisorId(null)}
+        onEdit={(p) => { setVisorId(null); setIsNew(false); setSelected(p); }}
+        acciones={(p) => (p.estado !== "publicada" && p.estado !== "descartada" ? accionesDe(p) : null)}
+      />
+      <PiezaPanel
+        item={selected}
+        isNew={isNew}
+        hacedores={hacedores}
+        experiencias={experiencias}
+        onClose={() => setSelected(null)}
+        onSave={handleSave}
+        isSaving={isSaving}
+      />
+      <ConfirmDialog
+        open={!!deleteId}
+        message="¿Eliminar esta pieza de la parrilla? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        isLoading={isDeleting}
+      />
+      {toast && <Toast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
+    </div>
+  );
+
+  /* Botones de aprobación y avance según el estado (tarjeta y visor) */
+  function accionesDe(item: Pieza) {
+    return (
+      <>
                     {item.estado === "tema_propuesto" && (
                       <>
                         <button onClick={() => cambiarEstado(item, "producir", "Tema aprobado. Pasa a producción.")}
@@ -694,32 +894,7 @@ export default function AdminParrillaPage() {
                       className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 text-xs font-bold transition-all">
                       <Ban size={14} /> Descartar
                     </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <PiezaPanel
-        item={selected}
-        isNew={isNew}
-        hacedores={hacedores}
-        experiencias={experiencias}
-        onClose={() => setSelected(null)}
-        onSave={handleSave}
-        isSaving={isSaving}
-      />
-      <ConfirmDialog
-        open={!!deleteId}
-        message="¿Eliminar esta pieza de la parrilla? Esta acción no se puede deshacer."
-        confirmLabel="Eliminar"
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteId(null)}
-        isLoading={isDeleting}
-      />
-      {toast && <Toast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
-    </div>
-  );
+      </>
+    );
+  }
 }

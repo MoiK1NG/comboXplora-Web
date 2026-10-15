@@ -41,7 +41,7 @@ export default function CulturalMap({ items, onMarkerClick }: CulturalMapProps) 
         );
     }
 
-    const createCustomIcon = (type: "experience" | "audio" | "relato") => {
+    const createCustomIcon = (type: MapItem["type"]) => {
         const color = type === "experience" ? "#F4C430" : type === "relato" ? "#8B5CF6" : "#2A9D8F";
 
         const html = `

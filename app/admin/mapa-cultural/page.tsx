@@ -290,7 +290,7 @@ function mapItemToForm(item: MapItem): FormState {
         id: item.id,
         title: item.title,
         slug: item.slug || "",
-        type: item.type === "relato" ? "experience" : item.type,
+        type: item.type === "audio" ? "audio" : "experience",
         categories: (item.categories || []).join(", "),
         description: item.shortDescription || "",
         lat: String(item.lat),

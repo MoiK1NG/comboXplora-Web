@@ -39,11 +39,20 @@ export type AudioPoint = {
   audioUrl: string;
 };
 
+export type MapItemType = 'experience' | 'evento' | 'audio' | 'relato';
+
+export type EventAmenities = {
+  wifi?: string;
+  accesible?: string;
+  parqueadero?: string;
+  banos?: string;
+};
+
 export type MapItem = {
   id: string;
   title: string;
   slug: string;
-  type: 'experience' | 'audio' | 'relato';
+  type: MapItemType;
   categories: string[];
   shortDescription: string;
   neighborhood: string;
@@ -57,6 +66,53 @@ export type MapItem = {
   narrator?: string;
   audioUrl?: string;
   isActive?: boolean;
+  // Solo eventos de la comunidad
+  eventDate?: string;      // YYYY-MM-DD
+  startTime?: string;
+  endTime?: string;
+  eventKind?: string;      // tipo_evento del formulario
+  venueName?: string;
+  address?: string;
+  mapsUrl?: string;
+  amenities?: EventAmenities;
+};
+
+// ─────────────────────────────────────────────
+// EVENTOS (Google Form → Apps Script → Supabase)
+// ─────────────────────────────────────────────
+
+export type EventoStatus = 'nuevo' | 'aprobado' | 'rechazado';
+
+export type EventoRow = {
+  id: string;
+  email_respondente: string | null;
+  nombre_evento: string | null;
+  tipo_evento: string | null;
+  descripcion: string | null;
+  fecha_evento: string | null;
+  hora_inicio: string | null;
+  hora_fin: string | null;
+  direccion: string | null;
+  link_maps: string | null;
+  nombre_responsable: string | null;
+  email_contacto: string | null;
+  telefono: string | null;
+  tipo_espacio: string | null;
+  nombre_lugar: string | null;
+  wifi: string | null;
+  accesible: string | null;
+  parqueadero: string | null;
+  banos: string | null;
+  detalles_adicionales: string | null;
+  acepta_promocion: string | null;
+  status: EventoStatus | string;
+  admin_notes: string | null;
+  created_at: string;
+  lat: number | null;
+  lng: number | null;
+  fecha: string | null;
+  categorias: string[] | null;
+  imagen: string | null;
 };
 
 // ─────────────────────────────────────────────

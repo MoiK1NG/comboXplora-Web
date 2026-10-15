@@ -3,6 +3,7 @@ import { Experience, AudioPoint, MapItem } from './types';
 import { experiences as staticExperiences, audioPoints as staticAudioPoints } from './map-data';
 import staticHacedores from '../data/hacedores.json';
 import staticMapItems from '../data/mapa-cultural.json';
+import { todayISO } from './event-dates';
 
 // Interfaces for our dynamic objects matching the application types
 export interface HacedorData {
@@ -201,6 +202,57 @@ export async function fetchMapPoints(opts?: { includeInactive?: boolean }): Prom
   } catch (err) {
     console.error('Failed to fetch map items from Supabase. Falling back to static JSON.', err);
     return (staticMapItems as any[]).map(i => ({ ...i, isActive: true }));
+  }
+}
+
+// Eventos de la comunidad aprobados. Lee la vista pública `eventos_publicos`,
+// que no incluye datos personales del organizador (ver supabase-eventos-mapa.sql).
+const mapEventoPublicoRow = (row: any): MapItem => ({
+  id: `evt_${row.id}`,
+  title: row.nombre_evento || 'Evento',
+  slug: '',
+  type: 'evento',
+  categories: Array.isArray(row.categorias) && row.categorias.length > 0
+    ? row.categorias
+    : (row.tipo_evento ? [row.tipo_evento] : []),
+  shortDescription: row.descripcion || '',
+  neighborhood: '',
+  locationLabel: row.nombre_lugar || '',
+  lat: Number(row.lat),
+  lng: Number(row.lng),
+  coverImage: row.imagen || '',
+  eventDate: row.fecha || undefined,
+  startTime: row.hora_inicio || undefined,
+  endTime: row.hora_fin || undefined,
+  eventKind: row.tipo_evento || undefined,
+  venueName: row.nombre_lugar || undefined,
+  address: row.direccion || undefined,
+  mapsUrl: row.link_maps || undefined,
+  amenities: {
+    wifi: row.wifi || undefined,
+    accesible: row.accesible || undefined,
+    parqueadero: row.parqueadero || undefined,
+    banos: row.banos || undefined,
+  },
+  isActive: true,
+});
+
+export async function fetchApprovedEvents(): Promise<MapItem[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('eventos_publicos')
+      .select('*')
+      .gte('fecha', todayISO())
+      .order('fecha', { ascending: true });
+
+    if (error) throw error;
+    return (data || []).map(mapEventoPublicoRow);
+  } catch (err) {
+    // La vista no existe hasta correr supabase-eventos-mapa.sql: el mapa sigue sin eventos.
+    console.warn('No se pudieron cargar los eventos aprobados.', err);
+    return [];
   }
 }
 

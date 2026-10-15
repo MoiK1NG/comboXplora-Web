@@ -19,6 +19,9 @@ const STATUS_MAP: Record<string, StatusConfig> = {
   revisada: { label: "Revisada", className: "bg-amber-50 text-amber-700 border-amber-100" },
   aprobada: { label: "Aprobada", className: "bg-emerald-50 text-emerald-700 border-emerald-100" },
   rechazada: { label: "Rechazada", className: "bg-red-50 text-red-700 border-red-100" },
+  // Eventos
+  aprobado: { label: "Aprobado", className: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+  rechazado: { label: "Rechazado", className: "bg-red-50 text-red-700 border-red-100" },
 };
 
 interface StatusBadgeProps {

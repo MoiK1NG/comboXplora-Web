@@ -1,222 +1,288 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { MapFilters } from "../../components/map/map-filters";
-import { MapLegend } from "../../components/map/map-legend";
-import { MapItem } from "../../lib/types";
-import mapPointsRaw from "../../data/mapa-cultural.json";
-import { fetchMapPoints } from "../../lib/db";
-import { SelectedExperiencePanel } from "../../components/map/selected-experience-panel";
 import Link from "next/link";
-import { ArrowLeft, Map as MapIcon, Info, Users, Heart, Star, ChevronRight, Filter, MousePointerClick } from "lucide-react";
+import { ChevronRight, LocateFixed, Loader2 } from "lucide-react";
+import { Navbar } from "../../components/layouts/Navbar";
+import { Footer } from "../../components/layouts/Footer";
+import { MapFilters, INITIAL_FILTERS, type MapFilterState } from "../../components/map/map-filters";
+import { MapLegend } from "../../components/map/map-legend";
+import { MapList } from "../../components/map/map-list";
+import { SelectedExperiencePanel } from "../../components/map/selected-experience-panel";
+import { BottomSheet, type SheetSnap } from "../../components/map/bottom-sheet";
+import { SHOW_HISTORIAS, layerOf, distanceKm, type LayerKey } from "../../components/map/map-config";
+import type { LatLng } from "../../components/map/cultural-map";
+import type { MapItem } from "../../lib/types";
+import mapPointsRaw from "../../data/mapa-cultural.json";
+import { fetchMapPoints, fetchApprovedEvents } from "../../lib/db";
+import { CATEGORIES } from "../../lib/admin-utils";
+import { isInRange } from "../../lib/event-dates";
 
-// Dynamically import the map to avoid SSR issues with Leaflet
+// Leaflet necesita el navegador: sin SSR
 const CulturalMap = dynamic(() => import("../../components/map/cultural-map"), {
-    ssr: false,
-    loading: () => (
-        <div className="w-full h-full bg-gray-50 flex flex-col items-center justify-center gap-4">
-            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-            <p className="text-gray-400 font-sans font-bold text-xs uppercase tracking-widest animate-pulse">
-                Cargando Experiencia...
-            </p>
-        </div>
-    ),
+  ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 bg-[#F3F1EA] flex items-center justify-center">
+      <Loader2 size={28} className="animate-spin text-[#C9A227]" aria-label="Cargando mapa" />
+    </div>
+  ),
 });
 
-type FilterType = "Todas" | "Gastronomía" | "Música" | "Tradición" | "Arte" | "Comunidad" | "Naturaleza";
+function isPublicItem(item: MapItem): boolean {
+  if (item.type === "experience" || item.type === "evento") return true;
+  return SHOW_HISTORIAS;
+}
+
+function matchesQuery(item: MapItem, q: string): boolean {
+  if (!q) return true;
+  const hay = [item.title, item.neighborhood, item.locationLabel, item.venueName, item.address, ...(item.categories || [])]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+  const needle = q.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+  return hay.includes(needle);
+}
+
+type GeoStatus = "idle" | "loading" | "denied" | "unsupported";
 
 export default function MapaCulturalPage() {
-    const [filter, setFilter] = useState<FilterType>("Todas");
-    const [selectedItem, setSelectedItem] = useState<MapItem | null>(null);
-    const [allItems, setAllItems] = useState<MapItem[]>(mapPointsRaw as MapItem[]);
+  const [allItems, setAllItems] = useState<MapItem[]>(() => (mapPointsRaw as MapItem[]).filter(isPublicItem));
+  const [filters, setFilters] = useState<MapFilterState>(INITIAL_FILTERS);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [sheetSnap, setSheetSnap] = useState<SheetSnap>("peek");
+  const [userLocation, setUserLocation] = useState<LatLng | null>(null);
+  const [locateNonce, setLocateNonce] = useState(0);
+  const [geoStatus, setGeoStatus] = useState<GeoStatus>("idle");
 
-    useEffect(() => {
-        async function loadMapPoints() {
-            const data = await fetchMapPoints();
-            setAllItems(data);
-        }
-        loadMapPoints();
-    }, []);
+  useEffect(() => {
+    let alive = true;
+    Promise.all([fetchMapPoints(), fetchApprovedEvents()]).then(([points, events]) => {
+      if (alive) setAllItems([...points, ...events].filter(isPublicItem));
+    });
+    return () => { alive = false; };
+  }, []);
 
-    const filteredItems = useMemo(() => {
-        if (filter === "Todas") return allItems;
-        return allItems.filter((item) => item.categories.includes(filter));
-    }, [allItems, filter]);
+  // Filtros comunes (búsqueda, categoría y fecha). El tipo se aplica después para poder contar por capa.
+  const base = useMemo(
+    () =>
+      allItems.filter(item => {
+        if (!matchesQuery(item, filters.query)) return false;
+        if (filters.category && !item.categories?.includes(filters.category)) return false;
+        if (item.type === "evento" && item.eventDate && !isInRange(item.eventDate, filters.dateRange)) return false;
+        return true;
+      }),
+    [allItems, filters.query, filters.category, filters.dateRange],
+  );
 
-    const quickLinks = [
-        { label: "Experiencias", href: "/#experiencias", icon: <Star size={14} /> },
-        { label: "Nosotros", href: "/#nosotros", icon: <Users size={14} /> },
-        { label: "Impacto", href: "/#impacto", icon: <Heart size={14} /> },
-        { label: "Comunidad", href: "/#comunidad", icon: <Info size={14} /> },
-    ];
+  const counts = useMemo<Record<LayerKey, number>>(
+    () => ({
+      experience: base.filter(i => layerOf(i) === "experience").length,
+      evento: base.filter(i => layerOf(i) === "evento").length,
+    }),
+    [base],
+  );
 
-    return (
-        <div className="min-h-screen flex flex-col bg-[#FCFCFC] relative overflow-hidden">
-            {/* Background Decorations */}
-            <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute animate-pulse bottom-[5%] left-[-10%] w-[35%] h-[35%] bg-teal-500/5 rounded-full blur-[100px] pointer-events-none" />
+  const filtered = useMemo(() => {
+    const list = filters.type === "todo" ? base : base.filter(i => layerOf(i) === filters.type);
+    return [...list].sort((a, b) => {
+      if (userLocation) return distanceKm(userLocation, a) - distanceKm(userLocation, b);
+      const la = layerOf(a), lb = layerOf(b);
+      if (la !== lb) return la === "experience" ? -1 : 1;
+      if (la === "evento") return (a.eventDate ?? "").localeCompare(b.eventDate ?? "");
+      return 0;
+    });
+  }, [base, filters.type, userLocation]);
 
-            {/* Top Navigation Bar */}
-            <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href="/"
-                            className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all duration-300"
-                        >
-                            <ArrowLeft size={16} />
-                            Volver al inicio
-                        </Link>
-                        <div className="h-4 w-[1px] bg-gray-200 hidden sm:block" />
-                        <Link
-                            href="/experiencias"
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest text-primary hover:bg-primary/10 transition-all duration-300"
-                        >
-                            Ver Experiencias
-                        </Link>
-                    </div>
+  // Categorías que existen en lo que se puede ver, en el orden oficial
+  const categories = useMemo(() => {
+    const pool = filters.type === "todo" ? allItems : allItems.filter(i => layerOf(i) === filters.type);
+    const present = new Set(pool.flatMap(i => i.categories || []));
+    const ordered = (CATEGORIES as readonly string[]).filter(c => present.has(c));
+    const extra = [...present].filter(c => !(CATEGORIES as readonly string[]).includes(c)).sort();
+    return [...ordered, ...extra];
+  }, [allItems, filters.type]);
 
-                    <div className="flex items-center gap-2">
-                        <Link href="/" className="font-outfit text-xl font-black text-gray-900 tracking-tighter">
-                            Combo<span className="text-primary">Xplora</span>
-                        </Link>
-                    </div>
-                </div>
-            </nav>
+  const hasEvents = useMemo(() => allItems.some(i => i.type === "evento"), [allItems]);
+  const selectedItem = filtered.find(i => i.id === selectedId) ?? null;
 
-            <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-8 py-12 relative z-10">
-                {/* Hero Section */}
-                <div className="mb-16">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-                        <MapIcon size={14} />
-                        Mapa Interactivo MVP
-                    </div>
-                    <h1 className="font-outfit text-4xl sm:text-6xl font-black text-gray-900 tracking-tight leading-[0.9] mb-6">
-                        Mapa Cultural de <br />
-                        <span className="text-primary">Experiencias</span>
-                    </h1>
-                    <p className="font-sans text-lg text-gray-500 max-w-2xl leading-relaxed">
-                        Explora Barranquilla a través de experiencias auténticas, ubicadas en los territorios donde la cultura vive de la mano de hacedores locales.
-                    </p>
-                </div>
+  const select = useCallback((id: string | null) => {
+    setSelectedId(id);
+    setSheetSnap("open");
+  }, []);
 
-                {/* Quick Navigation Anchor Links (Landing Sections) */}
-                <div className="flex flex-wrap items-center gap-3 mb-12">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mr-2">Explorar más:</span>
-                    {quickLinks.map((link) => (
-                        <Link
-                            key={link.label}
-                            href={link.href}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-100 text-xs font-bold text-gray-600 hover:border-gray-900 hover:text-gray-900 hover:shadow-md transition-all duration-300"
-                        >
-                            {link.icon}
-                            {link.label}
-                        </Link>
-                    ))}
-                </div>
+  const clearFilters = useCallback(() => setFilters(INITIAL_FILTERS), []);
 
-                {/* Filters */}
-                <div className="relative mb-6">
-                    <MapFilters currentFilter={filter} setFilter={setFilter} />
-                </div>
-
-                {/* How to use the map */}
-                <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-gray-100 p-5 mb-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 shadow-sm">
-                    <div className="flex items-center gap-3 text-sm font-medium text-gray-600">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                            <Filter size={14} />
-                        </div>
-                        <p>1. Selecciona una <span className="font-bold text-gray-900">categoría</span></p>
-                    </div>
-                    <div className="hidden sm:block w-[1px] h-8 bg-gray-200" />
-                    <div className="flex items-center gap-3 text-sm font-medium text-gray-600">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                            <MousePointerClick size={14} />
-                        </div>
-                        <p>2. Haz clic en un <span className="font-bold text-gray-900">punto del mapa</span></p>
-                    </div>
-                    <div className="hidden sm:block w-[1px] h-8 bg-gray-200" />
-                    <div className="flex items-center gap-3 text-sm font-medium text-gray-600">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                            <Star size={14} />
-                        </div>
-                        <p>3. Descubre la <span className="font-bold text-gray-900">experiencia</span></p>
-                    </div>
-                </div>
-
-                {/* Map Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                    <div className="lg:col-span-2 flex flex-col gap-6">
-                        <div className="group relative rounded-[2.5rem] overflow-hidden shadow-[0_30px_70px_-20px_rgba(0,0,0,0.15)] border border-white bg-white min-h-[600px] h-[600px] transition-all duration-700">
-                            <CulturalMap
-                                items={filteredItems}
-                                onMarkerClick={(item) => setSelectedItem(item)}
-                            />
-
-                            {/* Floating Map Legend Overlay */}
-                            <MapLegend />
-
-                            {/* Tap Indicator for Map UX */}
-                            <div className="absolute top-6 right-6 z-40 bg-gray-900/10 backdrop-blur-md px-4 py-2 rounded-full pointer-events-none">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-900/60">
-                                    Haz clic en un punto • Explora
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-8">
-                        {selectedItem ? (
-                            <SelectedExperiencePanel
-                                item={selectedItem}
-                                onClose={() => setSelectedItem(null)}
-                            />
-                        ) : (
-                            <div className="bg-white/50 backdrop-blur-sm rounded-[2.5rem] border-2 border-dashed border-gray-200 p-10 flex flex-col items-center justify-center text-center gap-6 h-full min-h-[400px]">
-                                <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-gray-300">
-                                    <MapIcon size={32} />
-                                </div>
-                                <div>
-                                    <h4 className="font-outfit text-lg font-black text-gray-900 mb-2">Selecciona un marcador</h4>
-                                    <p className="text-sm text-gray-500 max-w-[200px] leading-relaxed">
-                                        Explora los puntos amarillos y turquesas para conocer historias y experiencias únicas.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Secondary CTA */}
-                        <div className="bg-gray-900 rounded-[2rem] p-8 text-white relative overflow-hidden group">
-                            <div className="absolute top-[-20%] right-[-10%] w-40 h-40 bg-primary/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
-                            <h4 className="font-outfit text-xl font-black mb-3">¿Buscas el catálogo completo?</h4>
-                            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                                Descubre todas nuestras rutas y talleres en una vista detallada.
-                            </p>
-                            <Link
-                                href="/experiencias"
-                                className="flex items-center justify-center w-full py-4 bg-primary text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-white transition-colors duration-300"
-                            >
-                                Catálogo de Experiencias
-                                <ChevronRight size={18} />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-            {/* Sub-footer Section */}
-            <footer className="bg-white border-t border-gray-100 py-12 px-8">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-                    <p className="text-xs font-medium text-gray-400">
-                        © 2026 ComboXplora • Barranquilla, Colombia • Hecho con <Heart size={10} className="inline text-primary" /> territorio.
-                    </p>
-                    <div className="flex gap-8">
-                        <Link href="/politicas" className="text-xs font-bold text-gray-400 hover:text-gray-900 uppercase tracking-widest">Políticas</Link>
-                        <Link href="/terminos" className="text-xs font-bold text-gray-400 hover:text-gray-900 uppercase tracking-widest">Términos</Link>
-                    </div>
-                </div>
-            </footer>
-        </div>
+  function locateMe() {
+    if (!("geolocation" in navigator)) {
+      setGeoStatus("unsupported");
+      return;
+    }
+    setGeoStatus("loading");
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocateNonce(n => n + 1);
+        setGeoStatus("idle");
+      },
+      () => setGeoStatus("denied"),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     );
+  }
+
+  const countLabel = `${filtered.length} ${filtered.length === 1 ? "lugar" : "lugares"}`;
+  // Sin resultados la ficha se abre sola para mostrar "Ver todo el mapa"
+  const effectiveSnap: SheetSnap = filtered.length === 0 && sheetSnap === "peek" ? "open" : sheetSnap;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#FCFCFC]">
+      <Navbar />
+
+      <main className="flex-grow pt-24 lg:pt-28 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* Encabezado */}
+          <header className="mb-6 lg:mb-8 max-w-2xl">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#B8860B] mb-3">Barranquilla · Mapa cultural</p>
+            <h1 className="font-outfit text-4xl sm:text-5xl font-black text-gray-900 tracking-tight leading-[0.95] text-balance">
+              La cultura de la ciudad, <span className="text-primary">barrio por barrio</span>
+            </h1>
+            <p className="mt-4 text-base sm:text-lg text-gray-500 leading-relaxed">
+              Experiencias con hacedores locales y eventos que organiza la comunidad. Toca un punto para ver cómo llegar.
+            </p>
+          </header>
+
+          {/* Filtros */}
+          <div className="mb-5">
+            <MapFilters
+              value={filters}
+              onChange={setFilters}
+              counts={counts}
+              categories={categories}
+              showDateFilter={hasEvents && filters.type !== "experience"}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px] gap-6">
+            {/* Mapa */}
+            <div className="relative -mx-4 sm:mx-0 h-[74svh] min-h-[520px] lg:h-[680px] sm:rounded-[2rem] overflow-hidden border-y sm:border border-gray-100 bg-[#F3F1EA] shadow-[0_30px_70px_-30px_rgba(0,0,0,0.25)]">
+              <CulturalMap
+                items={filtered}
+                selectedId={selectedItem?.id ?? null}
+                onSelect={select}
+                userLocation={userLocation}
+                locateNonce={locateNonce}
+              />
+
+              <MapLegend />
+
+              {/* Cerca de mí */}
+              <div className="absolute top-[84px] right-[10px] z-[400] flex flex-col items-end gap-2">
+                <button
+                  type="button"
+                  onClick={locateMe}
+                  disabled={geoStatus === "loading"}
+                  aria-label="Centrar el mapa en mi ubicación"
+                  title="Cerca de mí"
+                  className="w-[34px] h-[34px] rounded-[4px] bg-white border-2 border-black/20 bg-clip-padding flex items-center justify-center text-gray-800 hover:bg-gray-50 disabled:opacity-60"
+                >
+                  {geoStatus === "loading" ? <Loader2 size={16} className="animate-spin" /> : <LocateFixed size={16} />}
+                </button>
+                {(geoStatus === "denied" || geoStatus === "unsupported") && (
+                  <p role="status" className="max-w-[200px] text-right text-[11px] font-semibold bg-white rounded-xl px-3 py-2 shadow-md text-gray-700">
+                    {geoStatus === "denied"
+                      ? "No pudimos ver tu ubicación. Revisa el permiso del navegador."
+                      : "Tu navegador no comparte ubicación."}
+                  </p>
+                )}
+              </div>
+
+              {/* Celular: ficha deslizable */}
+              <div className="lg:hidden">
+                <BottomSheet
+                  snap={effectiveSnap}
+                  onSnapChange={setSheetSnap}
+                  title={
+                    selectedItem ? (
+                      <p className="text-sm font-black text-gray-900 truncate">{selectedItem.title}</p>
+                    ) : (
+                      <p className="text-sm font-black text-gray-900">
+                        {countLabel}
+                        <span className="font-semibold text-gray-400"> en el mapa</span>
+                      </p>
+                    )
+                  }
+                >
+                  {selectedItem ? (
+                    <SelectedExperiencePanel
+                      item={selectedItem}
+                      onClose={() => select(null)}
+                      userLocation={userLocation}
+                      variant="sheet"
+                    />
+                  ) : (
+                    <div className="px-3 pb-6">
+                      <MapList
+                        items={filtered}
+                        selectedId={null}
+                        onSelect={select}
+                        userLocation={userLocation}
+                        onClearFilters={clearFilters}
+                      />
+                    </div>
+                  )}
+                </BottomSheet>
+              </div>
+            </div>
+
+            {/* Escritorio: lista o detalle */}
+            <aside className="hidden lg:flex flex-col h-[680px] min-h-0" aria-label="Lugares en el mapa">
+              {selectedItem ? (
+                <div className="overflow-y-auto min-h-0 rounded-[2rem]">
+                  <SelectedExperiencePanel item={selectedItem} onClose={() => select(null)} userLocation={userLocation} />
+                </div>
+              ) : (
+                <div className="flex flex-col min-h-0 h-full bg-white rounded-[2rem] border border-gray-100 shadow-sm">
+                  <div className="flex items-baseline justify-between px-5 pt-5 pb-3 border-b border-gray-50">
+                    <h2 className="font-outfit text-lg font-black text-gray-900 tabular-nums">{countLabel}</h2>
+                    {userLocation && <span className="text-[11px] font-bold text-gray-400">Ordenados por cercanía</span>}
+                  </div>
+                  <div className="flex-1 min-h-0 overflow-y-auto p-2.5">
+                    <MapList
+                      items={filtered}
+                      selectedId={selectedItem ? selectedId : null}
+                      onSelect={select}
+                      userLocation={userLocation}
+                      onClearFilters={clearFilters}
+                    />
+                  </div>
+                </div>
+              )}
+            </aside>
+          </div>
+
+          {/* Llamado al catálogo */}
+          <div className="mt-10 bg-gray-900 rounded-[2rem] px-6 py-8 sm:px-10 sm:py-10 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="max-w-xl">
+              <h2 className="font-outfit text-2xl font-black mb-2">¿Prefieres verlo como catálogo?</h2>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Todas las experiencias con fotos, duración y precio en una sola vista.
+              </p>
+            </div>
+            <Link
+              href="/experiencias"
+              className="inline-flex items-center justify-center gap-2 px-6 py-4 bg-primary text-gray-900 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-white transition-colors"
+            >
+              Ver catálogo <ChevronRight size={16} />
+            </Link>
+          </div>
+
+          <p className="sr-only" aria-live="polite">{countLabel}</p>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
 }

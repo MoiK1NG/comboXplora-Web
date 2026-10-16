@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { Experience, AudioPoint, MapItem } from './types';
+import { Experience, AudioPoint, MapItem, EventoRow } from './types';
 import { experiences as staticExperiences, audioPoints as staticAudioPoints } from './map-data';
 import staticHacedores from '../data/hacedores.json';
 import staticMapItems from '../data/mapa-cultural.json';
@@ -207,7 +207,14 @@ export async function fetchMapPoints(opts?: { includeInactive?: boolean }): Prom
 
 // Eventos de la comunidad aprobados. Lee la vista pública `eventos_publicos`,
 // que no incluye datos personales del organizador (ver supabase-eventos-mapa.sql).
-const mapEventoPublicoRow = (row: any): MapItem => ({
+type EventoPublicoRow = Pick<
+  EventoRow,
+  'id' | 'nombre_evento' | 'tipo_evento' | 'descripcion' | 'fecha' | 'hora_inicio' | 'hora_fin' | 'direccion' |
+  'link_maps' | 'tipo_espacio' | 'nombre_lugar' | 'wifi' | 'accesible' | 'parqueadero' | 'banos' | 'categorias' |
+  'imagen' | 'lat' | 'lng'
+>;
+
+const mapEventoPublicoRow = (row: EventoPublicoRow): MapItem => ({
   id: `evt_${row.id}`,
   title: row.nombre_evento || 'Evento',
   slug: '',
@@ -248,7 +255,7 @@ export async function fetchApprovedEvents(): Promise<MapItem[]> {
       .order('fecha', { ascending: true });
 
     if (error) throw error;
-    return (data || []).map(mapEventoPublicoRow);
+    return ((data || []) as EventoPublicoRow[]).map(mapEventoPublicoRow);
   } catch (err) {
     // La vista no existe hasta correr supabase-eventos-mapa.sql: el mapa sigue sin eventos.
     console.warn('No se pudieron cargar los eventos aprobados.', err);

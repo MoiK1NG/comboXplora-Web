@@ -24,3 +24,12 @@
     text-wrap: balance;
   }
 }
+
+/* Filas con scroll horizontal sin barra visible (filtros del mapa en celular) */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

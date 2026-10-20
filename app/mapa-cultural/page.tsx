@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ChevronRight, LocateFixed, Loader2 } from "lucide-react";
@@ -48,7 +49,7 @@ function matchesQuery(item: MapItem, q: string): boolean {
 
 type GeoStatus = "idle" | "loading" | "denied" | "unsupported";
 
-export default function MapaCulturalPage() {
+function MapaCulturalContent() {
   const [allItems, setAllItems] = useState<MapItem[]>(() => (mapPointsRaw as MapItem[]).filter(isPublicItem));
   const [filters, setFilters] = useState<MapFilterState>(INITIAL_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -57,13 +58,25 @@ export default function MapaCulturalPage() {
   const [locateNonce, setLocateNonce] = useState(0);
   const [geoStatus, setGeoStatus] = useState<GeoStatus>("idle");
 
+  const searchParams = useSearchParams();
+  const deepLinkSlug = searchParams.get("evento");
+
   useEffect(() => {
     let alive = true;
     Promise.all([fetchMapPoints(), fetchApprovedEvents()]).then(([points, events]) => {
-      if (alive) setAllItems([...points, ...events].filter(isPublicItem));
+      if (!alive) return;
+      setAllItems([...points, ...events].filter(isPublicItem));
+      // /mapa-cultural?evento=<slug> abre ese evento al llegar desde su página o desde un enlace compartido
+      if (deepLinkSlug) {
+        const hit = events.find(e => e.eventSlug === deepLinkSlug);
+        if (hit) {
+          setSelectedId(hit.id);
+          setSheetSnap("open");
+        }
+      }
     });
     return () => { alive = false; };
-  }, []);
+  }, [deepLinkSlug]);
 
   // Filtros comunes (búsqueda, categoría y fecha). El tipo se aplica después para poder contar por capa.
   const base = useMemo(
@@ -151,6 +164,11 @@ export default function MapaCulturalPage() {
             <p className="mt-4 text-base sm:text-lg text-gray-500 leading-relaxed">
               Experiencias con hacedores locales y eventos que organiza la comunidad. Toca un punto para ver cómo llegar.
             </p>
+            {hasEvents && (
+              <Link href="/eventos" className="inline-flex items-center gap-1.5 mt-4 text-sm font-bold text-blue-700 hover:underline underline-offset-4">
+                Ver la agenda por fechas <ChevronRight size={14} />
+              </Link>
+            )}
           </header>
 
           {/* Filtros */}
@@ -284,5 +302,14 @@ export default function MapaCulturalPage() {
 
       <Footer />
     </div>
+  );
+}
+
+// useSearchParams exige un límite de Suspense para el prerender
+export default function MapaCulturalPage() {
+  return (
+    <Suspense fallback={null}>
+      <MapaCulturalContent />
+    </Suspense>
   );
 }

@@ -2,8 +2,9 @@
 
 import { createElement } from "react";
 import Link from "next/link";
+import { eventPath } from "../../lib/site";
 import {
-  MapPin, Clock, X, CalendarDays, Navigation, Wifi, Accessibility, Car, Bath, ArrowLeft, MessageCircle,
+  MapPin, Clock, X, CalendarDays, Navigation, Wifi, Accessibility, Car, Bath, ArrowLeft, MessageCircle, Ticket,
 } from "lucide-react";
 import type { MapItem } from "../../lib/types";
 import { getWhatsAppUrl } from "../../lib/whatsapp";
@@ -129,14 +130,35 @@ export function SelectedExperiencePanel({ item, onClose, userLocation, variant =
 
         <div className="flex flex-col sm:flex-row gap-2.5">
           {isEvent ? (
-            <a
-              href={directionsUrl(item)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 rounded-xl font-bold text-sm transition-colors"
-            >
-              <Navigation size={16} /> Cómo llegar
-            </a>
+            <>
+              {item.eventSlug && (
+                <Link
+                  href={eventPath(item.eventSlug)}
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-5 py-3.5 rounded-xl font-bold text-sm transition-colors"
+                >
+                  Ver evento
+                </Link>
+              )}
+              {item.registrationUrl ? (
+                <a
+                  href={item.registrationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 rounded-xl font-bold text-sm transition-colors"
+                >
+                  <Ticket size={16} /> Inscribirse
+                </a>
+              ) : (
+                <a
+                  href={directionsUrl(item)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 rounded-xl font-bold text-sm transition-colors"
+                >
+                  <Navigation size={16} /> Cómo llegar
+                </a>
+              )}
+            </>
           ) : (
             <>
               {item.slug && (

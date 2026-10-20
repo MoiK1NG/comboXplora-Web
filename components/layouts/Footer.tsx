@@ -50,6 +50,7 @@ export function Footer() {
                     <ul className="space-y-4 font-sans text-gray-600 font-medium">
                         <li><Link href="/experiencias" className="hover:text-primary transition-colors">{T.footer.experiences[lang]}</Link></li>
                         <li><Link href="/mapa-cultural" className="hover:text-primary transition-colors">{T.footer.culturalMap[lang]}</Link></li>
+                        <li><Link href="/eventos" className="hover:text-primary transition-colors">{T.footer.agenda[lang]}</Link></li>
                         <li><Link href="/hacedores" className="hover:text-primary transition-colors">{T.footer.makers[lang]}</Link></li>
                         <li><Link href="/postula-tu-experiencia" className="hover:text-primary transition-colors">{T.footer.submit[lang]}</Link></li>
                     </ul>

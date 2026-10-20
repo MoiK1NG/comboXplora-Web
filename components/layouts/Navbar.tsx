@@ -47,6 +47,7 @@ export function Navbar() {
         { name: T.nav.home[lang],        href: '/' },
         { name: T.nav.experiences[lang], href: '/experiencias' },
         { name: T.nav.culturalMap[lang], href: '/mapa-cultural' },
+        { name: T.nav.agenda[lang],      href: '/eventos' },
         { name: T.nav.makers[lang],      href: '/hacedores' },
         { name: T.nav.submit[lang],      href: '/postula-tu-experiencia' },
     ];

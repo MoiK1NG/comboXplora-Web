@@ -38,6 +38,7 @@ export async function POST(req: Request) {
     "/hacedores",
     "/mapa-cultural",
     "/relatos",
+    "/eventos",
   ];
 
   for (const path of paths) {
@@ -48,6 +49,7 @@ export async function POST(req: Request) {
   // Revalidar slugs dinámicos (revalida toda la ruta)
   revalidatePath("/experiencias/[slug]", "page");
   revalidatePath("/hacedores/[slug]", "page");
+  revalidatePath("/eventos/[slug]", "page");
 
   return NextResponse.json({
     ok: true,

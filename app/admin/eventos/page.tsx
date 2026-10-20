@@ -386,6 +386,8 @@ export default function AdminEventosPage() {
     } else {
       showToast(data.status === "aprobado" ? "Evento aprobado: ya sale en el mapa y en la agenda." : "Evento guardado.", "ok");
       setSelected(null);
+      // La agenda y la página del evento se guardan en caché: se refrescan al momento
+      fetch("/api/admin/revalidate", { method: "POST" }).catch(() => {});
       await load();
     }
     setIsSaving(false);
@@ -406,7 +408,11 @@ export default function AdminEventosPage() {
     }
     const { error } = await supabase.from("eventos").update({ status }).eq("id", item.id);
     if (error) showToast(error.message, "err");
-    else { showToast("Evento rechazado.", "ok"); await load(); }
+    else {
+      showToast("Evento rechazado.", "ok");
+      fetch("/api/admin/revalidate", { method: "POST" }).catch(() => {});
+      await load();
+    }
   }
 
   async function handleDelete() {
@@ -414,7 +420,11 @@ export default function AdminEventosPage() {
     setIsDeleting(true);
     const { error } = await supabase.from("eventos").delete().eq("id", deleteId);
     if (error) showToast(error.message, "err");
-    else { showToast("Evento eliminado.", "ok"); await load(); }
+    else {
+      showToast("Evento eliminado.", "ok");
+      fetch("/api/admin/revalidate", { method: "POST" }).catch(() => {});
+      await load();
+    }
     setDeleteId(null);
     setIsDeleting(false);
   }

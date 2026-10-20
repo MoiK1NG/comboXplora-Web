@@ -75,6 +75,8 @@ export type MapItem = {
   address?: string;
   mapsUrl?: string;
   amenities?: EventAmenities;
+  eventSlug?: string;        // ruta pública /eventos/<slug>
+  registrationUrl?: string;  // Luma u otro enlace de inscripción
 };
 
 // ─────────────────────────────────────────────
@@ -113,6 +115,9 @@ export type EventoRow = {
   fecha: string | null;
   categorias: string[] | null;
   imagen: string | null;
+  slug: string | null;
+  link_inscripcion: string | null;
+  aviso_aprobacion_enviado_at: string | null;
 };
 
 // ─────────────────────────────────────────────

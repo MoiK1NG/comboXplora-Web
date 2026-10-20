@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_URL } from "../lib/site";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
@@ -15,6 +16,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "ComboXplora | Descubre Barranquilla a Través de su Gente",
   description: "Conecta con locales y turistas en auténticas experiencias culturales en Barranquilla. Turismo inmersivo guiado por hacedores culturales.",
   openGraph: {

@@ -8,12 +8,13 @@ import { StatusBadge } from "../../../components/admin/StatusBadge";
 import { CoordInput } from "../../../components/admin/CoordInput";
 import { CategoryPicker } from "../../../components/admin/CategoryPicker";
 import { FormSection } from "../../../components/admin/FormSection";
-import { CATEGORIES, parseCoordinates } from "../../../lib/admin-utils";
+import { CATEGORIES, parseCoordinates, slugify } from "../../../lib/admin-utils";
+import { eventPath } from "../../../lib/site";
 import { parseFechaEvento, todayISO, formatShortDate, formatTime } from "../../../lib/event-dates";
 import type { EventoRow } from "../../../lib/types";
 import {
   Trash2, X, Save, Loader2, Search, CalendarDays, Mail, MapPin,
-  CheckCircle2, XCircle, Edit2, ExternalLink, AlertTriangle, Lock,
+  CheckCircle2, XCircle, Edit2, ExternalLink, AlertTriangle, Lock, Send, Ticket,
 } from "lucide-react";
 
 /* ─── Estados ─────────────────────────────────────────── */
@@ -32,7 +33,14 @@ type FormState = {
   nombre_responsable: string; email_contacto: string; telefono: string;
   admin_notes: string; status: string;
   fecha: string; lat: string; lng: string; categorias: string; imagen: string;
+  link_inscripcion: string;
 };
+
+/** Slug estable: nombre del evento + 4 caracteres del id, para que dos eventos iguales no choquen. */
+function makeSlug(nombre: string | null, id: string): string {
+  const base = slugify(nombre || "evento") || "evento";
+  return `${base}-${id.replace(/-/g, "").slice(0, 4)}`;
+}
 
 function rowToForm(r: EventoRow): FormState {
   const coords = r.lat != null && r.lng != null ? null : parseCoordinates(r.link_maps || "");
@@ -49,10 +57,11 @@ function rowToForm(r: EventoRow): FormState {
     lng: r.lng != null ? String(r.lng) : coords ? String(coords.lng) : "",
     categorias: (r.categorias ?? []).join(", "),
     imagen: r.imagen ?? "",
+    link_inscripcion: r.link_inscripcion ?? "",
   };
 }
 
-function formToPayload(f: FormState) {
+function formToPayload(f: FormState, row: Pick<EventoRow, "id" | "slug">) {
   const num = (s: string) => { const n = parseFloat(s); return Number.isFinite(n) ? n : null; };
   const txt = (s: string) => (s.trim() === "" ? null : s.trim());
   return {
@@ -66,6 +75,9 @@ function formToPayload(f: FormState) {
     fecha: txt(f.fecha), lat: num(f.lat), lng: num(f.lng),
     categorias: f.categorias.split(",").map(s => s.trim()).filter(Boolean),
     imagen: txt(f.imagen),
+    link_inscripcion: txt(f.link_inscripcion),
+    // El slug se fija la primera vez que se aprueba y no cambia más: los enlaces compartidos siguen vivos
+    slug: row.slug ?? (f.status === "aprobado" ? makeSlug(f.nombre_evento, row.id) : null),
   };
 }
 
@@ -116,6 +128,12 @@ function EventoModal({
             <p className="text-xs text-gray-400 mt-0.5">
               Recibido el {new Date(item.created_at).toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}
             </p>
+            {item.slug && item.status === "aprobado" && (
+              <a href={eventPath(item.slug)} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-bold text-blue-600 hover:underline">
+                <ExternalLink size={12} /> Ver página pública
+              </a>
+            )}
           </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors" aria-label="Cerrar">
             <X size={18} />
@@ -178,6 +196,11 @@ function EventoModal({
                 options={CATEGORIES}
               />
               <p className="text-[11px] text-gray-400 mt-1">Tipo según el formulario: {form.tipo_evento || "—"}</p>
+            </div>
+            <div>
+              <label className={labelCls}>Enlace de inscripción (opcional)</label>
+              <input value={form.link_inscripcion} onChange={set("link_inscripcion")} placeholder="https://lu.ma/… o donde la gente se apunta" className={inputCls} />
+              <p className="text-[11px] text-gray-400 mt-1">Si el organizador usa Luma u otra plataforma, la página del evento muestra el botón Inscribirse hacia ese enlace.</p>
             </div>
             <div>
               <label className={labelCls}>Imagen (opcional)</label>
@@ -271,6 +294,14 @@ function EventoModal({
             <p className="text-xs text-gray-500">
               <span className="font-bold text-gray-700">Autoriza promoción:</span> {item.acepta_promocion || "—"}
             </p>
+            <p className="flex items-center gap-1.5 text-xs text-gray-500">
+              <Send size={12} className={item.aviso_aprobacion_enviado_at ? "text-emerald-500" : "text-gray-300"} />
+              {item.aviso_aprobacion_enviado_at
+                ? <>Aviso de aprobación enviado el {new Date(item.aviso_aprobacion_enviado_at).toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" })}.</>
+                : item.status === "aprobado"
+                  ? <>Aviso de aprobación pendiente: el Apps Script lo envía en los próximos minutos.</>
+                  : <>Al aprobarlo, el organizador recibe un correo con el enlace a su página.</>}
+            </p>
           </FormSection>
 
           {/* Notas */}
@@ -291,7 +322,7 @@ function EventoModal({
           )}
           <div className="flex gap-3">
             <button
-              onClick={() => onSave(item.id, formToPayload(form))}
+              onClick={() => onSave(item.id, formToPayload(form, item))}
               disabled={isSaving || blocked}
               className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#F4C430] hover:bg-[#E3B520] text-gray-900 font-black text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             >
@@ -353,7 +384,7 @@ export default function AdminEventosPage() {
         "err",
       );
     } else {
-      showToast(data.status === "aprobado" ? "Evento aprobado: ya sale en el mapa." : "Evento guardado.", "ok");
+      showToast(data.status === "aprobado" ? "Evento aprobado: ya sale en el mapa y en la agenda." : "Evento guardado.", "ok");
       setSelected(null);
       await load();
     }
@@ -370,7 +401,7 @@ export default function AdminEventosPage() {
       }
       // Guarda también lo precargado (fecha y ubicación sacadas del formulario)
       const f = rowToForm(item);
-      await handleSave(item.id, { ...formToPayload(f), status: "aprobado" });
+      await handleSave(item.id, formToPayload({ ...f, status: "aprobado" }, item));
       return;
     }
     const { error } = await supabase.from("eventos").update({ status }).eq("id", item.id);
@@ -413,7 +444,7 @@ export default function AdminEventosPage() {
       <div>
         <h1 className="font-outfit text-2xl font-black text-gray-900">Eventos de la comunidad</h1>
         <p className="text-sm text-gray-400 mt-0.5">
-          Llegan del formulario de Google. Al aprobarlos con fecha y ubicación salen en el Mapa Cultural en azul.
+          Llegan del formulario de Google. Al aprobarlos con fecha y ubicación salen en el mapa y en la agenda, con su propia página para compartir.
         </p>
       </div>
 
@@ -495,6 +526,12 @@ export default function AdminEventosPage() {
                       {past && (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500 uppercase tracking-wide">Ya pasó</span>
                       )}
+                      {item.aviso_aprobacion_enviado_at && (
+                        <span title="El organizador ya recibió el correo de aprobación" className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 uppercase tracking-wide">Avisado</span>
+                      )}
+                      {item.link_inscripcion && (
+                        <span title="Tiene enlace de inscripción" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 uppercase tracking-wide"><Ticket size={10} /> Inscripción</span>
+                      )}
                     </div>
                     <div className="text-xs text-gray-400 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
                       {item.tipo_evento && <span>{item.tipo_evento}</span>}
@@ -518,6 +555,12 @@ export default function AdminEventosPage() {
                         className="p-2 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors">
                         <XCircle size={17} />
                       </button>
+                    )}
+                    {item.slug && item.status === "aprobado" && (
+                      <a href={eventPath(item.slug)} target="_blank" rel="noopener noreferrer" title="Ver página pública"
+                        className="p-2 rounded-lg hover:bg-blue-50 text-gray-300 hover:text-blue-500 transition-colors">
+                        <ExternalLink size={15} />
+                      </a>
                     )}
                     <button title="Editar" onClick={() => setSelected(item)}
                       className="p-2 rounded-lg hover:bg-blue-50 text-gray-300 hover:text-blue-500 transition-colors">

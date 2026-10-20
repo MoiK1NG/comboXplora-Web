@@ -72,3 +72,63 @@ export function isInRange(iso: string, range: DateRange, today: string = todayIS
   const limit = addDaysISO(today, range === "semana" ? 7 : 30);
   return iso <= limit;
 }
+
+const MONTHS_LONG = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const WEEKDAYS_LONG = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+
+/** "sábado 12 de julio" */
+export function formatLongDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return `${WEEKDAYS_LONG[dt.getDay()]} ${d} de ${MONTHS_LONG[m - 1]}`;
+}
+
+/** Convierte "8:00:00 a.m." o "14:30" a horas y minutos en 24 h. Null si no se entiende. */
+export function parseTimeTo24h(raw: string | null | undefined): { h: number; m: number } | null {
+  if (!raw) return null;
+  const s = raw.toLowerCase().replace(/\s/g, "").replace(/\./g, "");
+  const match = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(am|pm)?$/);
+  if (!match) return null;
+  let h = Number(match[1]);
+  const m = Number(match[2]);
+  if (match[3] === "pm" && h < 12) h += 12;
+  if (match[3] === "am" && h === 12) h = 0;
+  if (h > 23 || m > 59) return null;
+  return { h, m };
+}
+
+export type EventBucket = "hoy" | "semana" | "proximos";
+
+export function bucketFor(iso: string, today: string = todayISO()): EventBucket {
+  if (iso === today) return "hoy";
+  if (iso <= addDaysISO(today, 7)) return "semana";
+  return "proximos";
+}
+
+/**
+ * Enlace para "Añadir a Google Calendar". Horas en Bogotá; sin hora, evento de día completo.
+ */
+export function googleCalendarUrl(opts: {
+  title: string; dateISO: string; startTime?: string; endTime?: string; location?: string; details?: string;
+}): string {
+  const start = parseTimeTo24h(opts.startTime);
+  const end = parseTimeTo24h(opts.endTime);
+  const ymd = opts.dateISO.replace(/-/g, "");
+  let dates: string;
+  if (start) {
+    const stamp = (t: { h: number; m: number }) => `${ymd}T${pad(t.h)}${pad(t.m)}00`;
+    const endT = end ?? { h: Math.min(start.h + 2, 23), m: start.m };
+    dates = `${stamp(start)}/${stamp(endT)}`;
+  } else {
+    dates = `${ymd}/${addDaysISO(opts.dateISO, 1).replace(/-/g, "")}`;
+  }
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: opts.title,
+    dates,
+    ctz: "America/Bogota",
+  });
+  if (opts.location) params.set("location", opts.location);
+  if (opts.details) params.set("details", opts.details);
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}

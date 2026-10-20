@@ -211,7 +211,7 @@ type EventoPublicoRow = Pick<
   EventoRow,
   'id' | 'nombre_evento' | 'tipo_evento' | 'descripcion' | 'fecha' | 'hora_inicio' | 'hora_fin' | 'direccion' |
   'link_maps' | 'tipo_espacio' | 'nombre_lugar' | 'wifi' | 'accesible' | 'parqueadero' | 'banos' | 'categorias' |
-  'imagen' | 'lat' | 'lng'
+  'imagen' | 'lat' | 'lng' | 'slug' | 'link_inscripcion'
 >;
 
 const mapEventoPublicoRow = (row: EventoPublicoRow): MapItem => ({
@@ -235,6 +235,8 @@ const mapEventoPublicoRow = (row: EventoPublicoRow): MapItem => ({
   venueName: row.nombre_lugar || undefined,
   address: row.direccion || undefined,
   mapsUrl: row.link_maps || undefined,
+  eventSlug: row.slug || undefined,
+  registrationUrl: row.link_inscripcion && /^https?:\/\//i.test(row.link_inscripcion) ? row.link_inscripcion : undefined,
   amenities: {
     wifi: row.wifi || undefined,
     accesible: row.accesible || undefined,
@@ -260,6 +262,23 @@ export async function fetchApprovedEvents(): Promise<MapItem[]> {
     // La vista no existe hasta correr supabase-eventos-mapa.sql: el mapa sigue sin eventos.
     console.warn('No se pudieron cargar los eventos aprobados.', err);
     return [];
+  }
+}
+
+/** Un evento aprobado por su slug, para la página pública. Null si no existe o ya pasó. */
+export async function fetchEventBySlug(slug: string): Promise<MapItem | null> {
+  if (!isSupabaseConfigured() || !slug) return null;
+  try {
+    const { data, error } = await supabase
+      .from('eventos_publicos')
+      .select('*')
+      .eq('slug', slug)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? mapEventoPublicoRow(data as EventoPublicoRow) : null;
+  } catch (err) {
+    console.warn(`No se pudo cargar el evento [${slug}].`, err);
+    return null;
   }
 }
 

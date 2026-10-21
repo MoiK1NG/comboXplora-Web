@@ -49,7 +49,7 @@ export function Navbar() {
         { name: T.nav.culturalMap[lang], href: '/mapa-cultural' },
         { name: T.nav.agenda[lang],      href: '/eventos' },
         { name: T.nav.makers[lang],      href: '/hacedores' },
-        { name: T.nav.submit[lang],      href: '/postula-tu-experiencia' },
+        { name: T.nav.companies[lang],   href: '/empresas' },
     ];
 
     const current = LANG_OPTIONS.find(o => o.code === lang)!;

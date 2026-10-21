@@ -240,6 +240,26 @@ export default function HacedoresDirectoryPage() {
                             <p className="text-gray-400 text-sm">{lang === "en" ? "Try adjusting the filters or your search terms." : "Prueba ajustando los filtros o tu búsqueda de términos."}</p>
                         </div>
                     ) : null}
+
+                    {/* Llamado a unirse */}
+                    <div className="mt-16 bg-gray-900 rounded-[2.5rem] px-8 py-10 sm:px-12 sm:py-12 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                        <div className="max-w-xl">
+                            <h2 className="font-outfit text-2xl sm:text-3xl font-black mb-2 text-balance">
+                                {lang === "en" ? "Do you keep a tradition alive?" : "¿Tú también guardas una tradición?"}
+                            </h2>
+                            <p className="text-gray-400 text-sm leading-relaxed">
+                                {lang === "en"
+                                    ? "Turn your craft into an experience. We handle curation, promotion and bookings."
+                                    : "Convierte tu saber en una experiencia. Nosotros ponemos la curaduría, la difusión y las reservas."}
+                            </p>
+                        </div>
+                        <Link
+                            href="/hacedores/unete"
+                            className="inline-flex items-center justify-center gap-2 px-6 py-4 bg-primary text-gray-900 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-white transition-colors whitespace-nowrap"
+                        >
+                            {lang === "en" ? "Join as a maker" : "Únete como hacedor"} <ChevronRight size={16} />
+                        </Link>
+                    </div>
                 </div>
             </main>
 

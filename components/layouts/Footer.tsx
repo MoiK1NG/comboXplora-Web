@@ -52,6 +52,8 @@ export function Footer() {
                         <li><Link href="/mapa-cultural" className="hover:text-primary transition-colors">{T.footer.culturalMap[lang]}</Link></li>
                         <li><Link href="/eventos" className="hover:text-primary transition-colors">{T.footer.agenda[lang]}</Link></li>
                         <li><Link href="/hacedores" className="hover:text-primary transition-colors">{T.footer.makers[lang]}</Link></li>
+                        <li><Link href="/empresas" className="hover:text-primary transition-colors">{T.footer.companies[lang]}</Link></li>
+                        <li><Link href="/hacedores/unete" className="hover:text-primary transition-colors">{T.footer.joinMakers[lang]}</Link></li>
                         <li><Link href="/postula-tu-experiencia" className="hover:text-primary transition-colors">{T.footer.submit[lang]}</Link></li>
                     </ul>
                 </div>

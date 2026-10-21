@@ -1,24 +1,25 @@
 "use client";
 
+import Link from "next/link";
 import { Navbar } from "../../components/layouts/Navbar";
 import { Footer } from "../../components/layouts/Footer";
 import { ClipboardList, Award, Rocket, CheckCircle } from "lucide-react";
 
 const steps = [
   {
-    icon: <ClipboardList className="w-7 h-7 text-primary animate-pulse" />,
-    title: "1. Envía tu propuesta",
-    desc: "Cuéntanos sobre tu taller, recorrido o saber tradicional en pocos minutos.",
+    icon: <ClipboardList className="w-7 h-7 text-primary" />,
+    title: "1. Registra tu evento",
+    desc: "Qué es, cuándo, dónde y cómo es el lugar. Te toma cinco minutos.",
   },
   {
-    icon: <Award className="w-7 h-7 text-teal-500 animate-pulse" />,
-    title: "2. Curaduría y Co-creación",
-    desc: "Nos conectamos contigo para perfeccionar la experiencia y fijar precios justos.",
+    icon: <Award className="w-7 h-7 text-teal-500" />,
+    title: "2. Lo revisamos",
+    desc: "Confirmamos fecha y ubicación. Si falta algo, te escribimos.",
   },
   {
-    icon: <Rocket className="w-7 h-7 text-gray-900 animate-bounce" />,
-    title: "3. ¡Al aire con el mundo!",
-    desc: "Publicamos tu experiencia para que viajeros comiencen a reservar.",
+    icon: <Rocket className="w-7 h-7 text-gray-900" />,
+    title: "3. Sale en el mapa y la agenda",
+    desc: "Con su propia página para que lo compartas por WhatsApp e Instagram.",
   },
 ];
 
@@ -33,14 +34,14 @@ export default function PostulaExperienciaPage() {
         <div className="max-w-4xl mx-auto px-6 text-center mb-16">
           <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-6">
             <CheckCircle size={14} />
-            Únete a ComboXplora
+            Mapa cultural
           </span>
-          <h1 className="font-outfit text-4xl sm:text-6xl font-black text-gray-900 tracking-tight leading-[0.95] mb-6">
-            Postula tu <br />
-            <span className="text-primary">Experiencia Cultural</span>
+          <h1 className="font-outfit text-4xl sm:text-6xl font-black text-gray-900 tracking-tight leading-[0.95] mb-6 text-balance">
+            Registra tu evento <br className="hidden sm:block" />
+            <span className="text-primary">en el mapa cultural</span>
           </h1>
           <p className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed font-medium">
-            ¿Eres un hacedor local, artista o guardián de la tradición en Barranquilla? Comparte tu saber con el mundo.
+            ¿Organizas un concierto, una obra, un taller o una feria en Barranquilla? Regístralo y lo publicamos gratis en la agenda y en el mapa.
           </p>
         </div>
 
@@ -49,9 +50,9 @@ export default function PostulaExperienciaPage() {
           {/* Left: Steps */}
           <div className="lg:col-span-2 space-y-8">
             <div>
-              <h2 className="font-outfit text-2xl font-black text-gray-900 mb-3">El proceso de curaduría</h2>
+              <h2 className="font-outfit text-2xl font-black text-gray-900 mb-3">Cómo funciona</h2>
               <p className="text-gray-500 leading-relaxed font-medium text-sm">
-                Cada experiencia pasa por un proceso de curaduría para garantizar autenticidad y calidad.
+                Revisamos cada evento antes de publicarlo para que la agenda sea confiable.
               </p>
             </div>
             <div className="space-y-4">
@@ -65,6 +66,10 @@ export default function PostulaExperienciaPage() {
                 </div>
               ))}
             </div>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              ¿Eres hacedor y quieres ofrecer tu propia experiencia con nosotros? Eso es otra cosa:{" "}
+              <Link href="/hacedores/unete" className="font-bold text-gray-700 underline underline-offset-4">únete como hacedor</Link>.
+            </p>
           </div>
 
           {/* Right: Google Form embed */}

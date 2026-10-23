@@ -104,7 +104,7 @@ const AVANCES: Partial<Record<Estado, { a: Estado; label: string; mensaje: strin
 /* Modo pausa (experiencias en pausa, contenido/criterio/criterio.md): 6 de Notoriedad
    y 2 de Hacedores al mes. Cuando vuelvan las experiencias: 2 por pilar. */
 const MODO = "pausa";
-const META_MES: Record<Pilar, number> = { xplorers: 0, hacedores: 2, empresas: 0, notoriedad: 6 };
+const META_MES: Record<Pilar, number> = { xplorers: 0, hacedores: 2, empresas: 0, notoriedad: 11 };
 const ESTADOS_QUE_CUENTAN: Estado[] = [
   "producir", "borrador", "auditado", "pieza_propuesta", "aprobada", "publicada",
 ];
@@ -425,6 +425,11 @@ function zipStore(files: { name: string; data: Uint8Array }[]): Blob {
   return new Blob([...partes, ...central, fin.buffer], { type: "application/zip" });
 }
 
+// Los reels se guardan como .mp4 en assets; el resto son láminas .jpg.
+const esVideo = (url: string) => /\.mp4(\?|$)/i.test(url);
+// Con #t el navegador pinta un cuadro del video como miniatura en vez de negro.
+const miniaturaVideo = (url: string) => `${url}#t=0.5`;
+
 const slugDe = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 
@@ -465,11 +470,15 @@ function Visor({
       const files = await Promise.all(fotos.map(async (url, i) => {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Lámina ${i + 1}: ${res.status}`);
-        return { name: `${base}-${String(i + 1).padStart(2, "0")}.jpg`, data: new Uint8Array(await res.arrayBuffer()) };
+        return { name: `${base}-${String(i + 1).padStart(2, "0")}.${esVideo(url) ? "mp4" : "jpg"}`, data: new Uint8Array(await res.arrayBuffer()) };
       }));
+      // Un reel es un solo .mp4: se baja tal cual, sin envolverlo en un zip.
+      const solo = files.length === 1 && esVideo(fotos[0]);
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(zipStore(files));
-      a.download = `${base}.zip`;
+      a.href = URL.createObjectURL(solo
+        ? new Blob([files[0].data as Uint8Array<ArrayBuffer>], { type: "video/mp4" })
+        : zipStore(files));
+      a.download = solo ? `${base}.mp4` : `${base}.zip`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 10000);
       setDescarga("listo");
@@ -505,8 +514,12 @@ function Visor({
         <div className="lg:w-[52%] bg-gray-950 flex flex-col">
           <div className="relative flex-1 flex items-center justify-center p-4 min-h-[320px]">
             {fotos.length ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={fotos[actual]} alt={`Lámina ${actual + 1}`} className="max-h-[55vh] lg:max-h-[70vh] w-auto rounded-2xl object-contain" />
+              esVideo(fotos[actual]) ? (
+                <video key={fotos[actual]} src={fotos[actual]} controls playsInline loop className="max-h-[55vh] lg:max-h-[70vh] w-auto rounded-2xl" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={fotos[actual]} alt={`Lámina ${actual + 1}`} className="max-h-[55vh] lg:max-h-[70vh] w-auto rounded-2xl object-contain" />
+              )
             ) : (
               <div className="text-gray-500 text-sm flex flex-col items-center gap-2">
                 <ImageOff size={32} /> Esta pieza todavía no tiene imágenes.
@@ -533,8 +546,12 @@ function Visor({
               {fotos.map((src, i) => (
                 <button key={src} onClick={() => setIdx(i)}
                   className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${i === actual ? "border-[#F4C430]" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" className="w-14 h-[70px] object-cover" />
+                  {esVideo(src) ? (
+                    <video src={miniaturaVideo(src)} muted preload="metadata" className="w-14 h-[70px] object-cover" />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={src} alt="" className="w-14 h-[70px] object-cover" />
+                  )}
                 </button>
               ))}
             </div>
@@ -544,7 +561,7 @@ function Visor({
               <button onClick={descargarTodo} disabled={descarga === "bajando"}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-[#F4C430] text-gray-900 text-sm font-bold hover:brightness-95 disabled:opacity-60">
                 {descarga === "bajando" ? <Loader2 size={16} className="animate-spin" /> : descarga === "listo" ? <Check size={16} /> : <Download size={16} />}
-                {descarga === "bajando" ? "Preparando…" : descarga === "listo" ? "Descargado" : descarga === "error" ? "No se pudo descargar, prueba otra vez" : `Descargar todo (${fotos.length} láminas)`}
+                {descarga === "bajando" ? "Preparando…" : descarga === "listo" ? "Descargado" : descarga === "error" ? "No se pudo descargar, prueba otra vez" : fotos.length === 1 && esVideo(fotos[0]) ? "Descargar video (.mp4)" : `Descargar todo (${fotos.length} ${fotos.length === 1 ? "archivo" : "archivos"})`}
               </button>
             </div>
           )}
@@ -562,7 +579,7 @@ function Visor({
               <p className="text-xs text-gray-400 mt-1 flex flex-wrap items-center gap-x-2">
                 {item.fecha_programada && <span className="flex items-center gap-1"><CalendarDays size={11} />{fechaCorta(item.fecha_programada)}</span>}
                 {item.formato && <span>· {FORMATOS.find((f) => f.value === item.formato)?.label}</span>}
-                {fotos.length > 0 && <span>· {fotos.length} {fotos.length === 1 ? "imagen" : "láminas"}</span>}
+                {fotos.length > 0 && <span>· {fotos.length === 1 && esVideo(fotos[0]) ? "video" : `${fotos.length} ${fotos.length === 1 ? "imagen" : "láminas"}`}</span>}
               </p>
             </div>
             <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0"><X size={18} /></button>
@@ -742,7 +759,7 @@ export default function AdminParrillaPage() {
           <h1 className="font-outfit text-2xl font-black text-gray-900">Parrilla de contenido</h1>
           <p className="text-sm text-gray-400 mt-0.5 flex items-start gap-1.5">
             <Instagram size={13} className="mt-[3px] flex-shrink-0" />
-            <span>@comboxplora · 2 piezas por semana · modo {MODO}: 6 Notoriedad + 2 Hacedores al mes</span>
+            <span>@comboxplora · 3 piezas por semana (mié y vie carrusel, sáb reel) · modo {MODO}: 11 Notoriedad + 2 Hacedores al mes</span>
           </p>
         </div>
         <button
@@ -847,8 +864,12 @@ export default function AdminParrillaPage() {
                   {item.assets?.length ? (
                     <button onClick={() => setVisorId(item.id)} title="Ver publicación"
                       className="flex-shrink-0 w-16 h-20 rounded-xl overflow-hidden bg-gray-100 hover:ring-2 hover:ring-[#F4C430] transition-all">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={item.assets[0]} alt="" className="w-full h-full object-cover" />
+                      {esVideo(item.assets[0]) ? (
+                        <video src={miniaturaVideo(item.assets[0])} muted preload="metadata" className="w-full h-full object-cover" />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={item.assets[0]} alt="" className="w-full h-full object-cover" />
+                      )}
                     </button>
                   ) : null}
                   <div className="flex-1 min-w-0">

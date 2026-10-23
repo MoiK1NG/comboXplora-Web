@@ -7,7 +7,7 @@ import { ConfirmDialog } from "../../../components/admin/ConfirmDialog";
 import {
   Plus, X, Save, Loader2, Search, CalendarDays, CheckCircle2, Undo2,
   Trash2, Edit2, ExternalLink, Sparkles, Ban, Send, Instagram, ArrowRight,
-  Eye, ChevronLeft, ChevronRight, Copy, Check, ImageOff, Download,
+  Eye, ChevronLeft, ChevronRight, Copy, Check, ImageOff, Download, Film, Images, Clock,
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────
@@ -48,6 +48,7 @@ interface Pieza {
   metricas_at: string | null;
   notas_admin: string | null;
   created_at: string;
+  updated_at: string | null;
 }
 
 const PILARES: { value: Pilar; label: string; className: string }[] = [
@@ -81,6 +82,33 @@ const FORMATOS = [
   { value: "imagen",   label: "Imagen" },
   { value: "historia", label: "Historia" },
 ];
+
+/* Formato bien visible en la tarjeta: reel y carrusel con color e ícono propios */
+const FORMATO_ESTILO: Record<string, { className: string; Icono: typeof Film }> = {
+  reel:     { className: "bg-gray-900 text-white border-gray-900", Icono: Film },
+  carrusel: { className: "bg-sky-50 text-sky-700 border-sky-200", Icono: Images },
+};
+
+/* Filtro por formato arriba de la lista */
+const FILTROS_FORMATO = [
+  { value: "todos",    label: "Todos" },
+  { value: "reel",     label: "Reels" },
+  { value: "carrusel", label: "Carruseles" },
+] as const;
+type FiltroFormato = (typeof FILTROS_FORMATO)[number]["value"];
+
+/* Una pieza creada o tocada en los últimos días lleva etiqueta */
+const DIAS_RECIENTE = 3;
+const tocadaAt = (i: Pieza) => i.updated_at ?? i.created_at;
+const esReciente = (iso: string) => Date.now() - new Date(iso).getTime() < DIAS_RECIENTE * 86_400_000;
+
+function haceCuanto(iso: string): string {
+  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (min < 60) return `hace ${Math.max(min, 1)} min`;
+  if (min < 24 * 60) return `hace ${Math.round(min / 60)} h`;
+  const dias = Math.round(min / (24 * 60));
+  return dias < 7 ? `hace ${dias} ${dias === 1 ? "día" : "días"}` : fechaCorta(iso);
+}
 
 /* Pestañas: agrupan estados según lo que Moisés tiene que hacer */
 const TABS: { key: string; label: string; estados: Estado[] }[] = [
@@ -629,6 +657,8 @@ export default function AdminParrillaPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [tab, setTab] = useState("aprobar");
   const [search, setSearch] = useState("");
+  const [filtroFormato, setFiltroFormato] = useState<FiltroFormato>("todos");
+  const [orden, setOrden] = useState<"recientes" | "fecha">("recientes");
   const [selected, setSelected] = useState<Partial<Pieza> | null>(null);
   const [visorId, setVisorId] = useState<string | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -740,13 +770,21 @@ export default function AdminParrillaPage() {
   const countFor = (estados: Estado[]) => items.filter((i) => estados.includes(i.estado)).length;
   const tabActual = TABS.find((t) => t.key === tab) ?? TABS[0];
 
-  const filtered = items
+  const enTab = items
     .filter((i) => tabActual.estados.includes(i.estado))
     .filter((i) => {
       const q = search.toLowerCase();
       return !q || i.titulo.toLowerCase().includes(q) || i.caption?.toLowerCase().includes(q) || i.motivo?.toLowerCase().includes(q);
-    })
-    .sort((a, b) => (a.fecha_programada ?? "9999").localeCompare(b.fecha_programada ?? "9999"));
+    });
+  const countFormato = (f: FiltroFormato) => (f === "todos" ? enTab.length : enTab.filter((i) => i.formato === f).length);
+  const filtered = enTab
+    .filter((i) => filtroFormato === "todos" || i.formato === filtroFormato)
+    .sort((a, b) =>
+      orden === "recientes"
+        ? tocadaAt(b).localeCompare(tocadaAt(a))
+        : (a.fecha_programada ?? "9999").localeCompare(b.fecha_programada ?? "9999"));
+  /* La más reciente de la lista lleva "Lo último" */
+  const ultimaId = enTab.length ? enTab.reduce((a, b) => (tocadaAt(b) > tocadaAt(a) ? b : a)).id : null;
 
   const nombreHacedor = (id: string | null) => hacedores.find((h) => h.id === id)?.name;
   const mesLabel = new Date().toLocaleDateString("es-CO", { month: "long" });
@@ -834,6 +872,35 @@ export default function AdminParrillaPage() {
         />
       </div>
 
+      {/* Formato y orden */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex gap-1.5">
+          {FILTROS_FORMATO.map((f) => {
+            const active = f.value === filtroFormato;
+            const Icono = f.value === "todos" ? null : FORMATO_ESTILO[f.value].Icono;
+            return (
+              <button key={f.value} onClick={() => setFiltroFormato(f.value)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black transition-all ${
+                  active ? "bg-[#F4C430] text-gray-900" : "bg-white text-gray-500 border border-gray-200 hover:border-gray-400"
+                }`}>
+                {Icono && <Icono size={13} />}
+                {f.label}
+                <span className={`px-1.5 rounded-md text-[10px] ${active ? "bg-gray-900/10" : "bg-gray-100"}`}>{countFormato(f.value)}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-1 text-xs font-bold">
+          <span className="text-gray-400 mr-1">Ordenar:</span>
+          {([["recientes", "Lo último primero"], ["fecha", "Por fecha de salida"]] as const).map(([v, label]) => (
+            <button key={v} onClick={() => setOrden(v)}
+              className={`px-3 py-1.5 rounded-lg transition-all ${orden === v ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {tab === "listas" && filtered.length > 0 && (
         <p className="text-xs text-gray-500 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
           Estas piezas están aprobadas. Claude solo publica en Instagram piezas en estado Aprobada, y después las mueve a Publicadas con su enlace.
@@ -858,22 +925,43 @@ export default function AdminParrillaPage() {
             const p = pilarInfo(item.pilar);
             const e = estadoInfo(item.estado);
             const hacedor = nombreHacedor(item.hacedor_id);
+            const fmt = item.formato ? FORMATO_ESTILO[item.formato] : undefined;
+            const fmtLabel = FORMATOS.find((f) => f.value === item.formato)?.label;
+            const reciente = esReciente(tocadaAt(item));
+            const nueva = esReciente(item.created_at);
             return (
-              <div key={item.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div key={item.id} className={`bg-white rounded-2xl border shadow-sm hover:shadow-md transition-shadow ${
+                item.id === ultimaId && reciente ? "border-[#F4C430] ring-1 ring-[#F4C430]/40" : "border-gray-100"
+              }`}>
                 <div className="flex items-start gap-4 px-5 py-4">
                   {item.assets?.length ? (
                     <button onClick={() => setVisorId(item.id)} title="Ver publicación"
-                      className="flex-shrink-0 w-16 h-20 rounded-xl overflow-hidden bg-gray-100 hover:ring-2 hover:ring-[#F4C430] transition-all">
+                      className="relative flex-shrink-0 w-16 h-20 rounded-xl overflow-hidden bg-gray-100 hover:ring-2 hover:ring-[#F4C430] transition-all">
                       {esVideo(item.assets[0]) ? (
                         <video src={miniaturaVideo(item.assets[0])} muted preload="metadata" className="w-full h-full object-cover" />
                       ) : (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={item.assets[0]} alt="" className="w-full h-full object-cover" />
                       )}
+                      {fmt && (
+                        <span className={`absolute bottom-1 left-1 p-1 rounded-md ${fmt.className}`}>
+                          <fmt.Icono size={11} />
+                        </span>
+                      )}
                     </button>
                   ) : null}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
+                      {fmt && fmtLabel && (
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border uppercase tracking-wider ${fmt.className}`}>
+                          <fmt.Icono size={11} /> {fmtLabel}
+                        </span>
+                      )}
+                      {item.id === ultimaId && reciente ? (
+                        <Pill className="bg-[#F4C430] text-gray-900 border-[#F4C430]">Lo último</Pill>
+                      ) : reciente ? (
+                        <Pill className="bg-amber-50 text-amber-700 border-amber-200">{nueva ? "Nueva" : "Actualizada"}</Pill>
+                      ) : null}
                       {p && <Pill className={p.className}>{p.label}</Pill>}
                       {e && <Pill className={e.className}>{e.label}</Pill>}
                       {item.nota !== null && (
@@ -884,8 +972,9 @@ export default function AdminParrillaPage() {
                       {item.titulo}
                     </button>
                     <div className="text-xs text-gray-400 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      {item.fecha_programada && <span className="flex items-center gap-1"><CalendarDays size={10} />{fechaCorta(item.fecha_programada)}</span>}
-                      {item.formato && <span>· {FORMATOS.find((f) => f.value === item.formato)?.label}</span>}
+                      {item.fecha_programada && <span className="flex items-center gap-1"><CalendarDays size={10} />sale {fechaCorta(item.fecha_programada)}</span>}
+                      {item.formato && !fmt && <span>· {fmtLabel}</span>}
+                      <span className="flex items-center gap-1">· <Clock size={10} />{tocadaAt(item) === item.created_at ? "agregada" : "actualizada"} {haceCuanto(tocadaAt(item))}</span>
                       {hacedor && <span>· {hacedor}</span>}
                       {item.origen !== "manual" && <span>· vía {item.origen}</span>}
                     </div>

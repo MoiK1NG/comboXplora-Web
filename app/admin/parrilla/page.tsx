@@ -132,7 +132,7 @@ const AVANCES: Partial<Record<Estado, { a: Estado; label: string; mensaje: strin
 /* Modo pausa (experiencias en pausa, contenido/criterio/criterio.md): 6 de Notoriedad
    y 2 de Hacedores al mes. Cuando vuelvan las experiencias: 2 por pilar. */
 const MODO = "pausa";
-const META_MES: Record<Pilar, number> = { xplorers: 0, hacedores: 2, empresas: 0, notoriedad: 11 };
+const META_MES: Record<Pilar, number> = { xplorers: 0, hacedores: 2, empresas: 0, notoriedad: 6 };
 const ESTADOS_QUE_CUENTAN: Estado[] = [
   "producir", "borrador", "auditado", "pieza_propuesta", "aprobada", "publicada",
 ];
@@ -797,7 +797,7 @@ export default function AdminParrillaPage() {
           <h1 className="font-outfit text-2xl font-black text-gray-900">Parrilla de contenido</h1>
           <p className="text-sm text-gray-400 mt-0.5 flex items-start gap-1.5">
             <Instagram size={13} className="mt-[3px] flex-shrink-0" />
-            <span>@comboxplora · 3 piezas por semana (mié y vie carrusel, sáb reel) · modo {MODO}: 11 Notoriedad + 2 Hacedores al mes</span>
+            <span>@comboxplora · 2 piezas por semana · modo {MODO}: 6 Notoriedad + 2 Hacedores al mes</span>
           </p>
         </div>
         <button

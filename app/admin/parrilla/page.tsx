@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "../../../lib/supabase-client";
 import { Toast } from "../../../components/admin/Toast";
 import { ConfirmDialog } from "../../../components/admin/ConfirmDialog";
+import { CalendarioParrilla } from "../../../components/admin/CalendarioParrilla";
 import {
   Plus, X, Save, Loader2, Search, CalendarDays, CheckCircle2, Undo2,
   Trash2, Edit2, ExternalLink, Sparkles, Ban, Send, Instagram, ArrowRight,
-  Eye, ChevronLeft, ChevronRight, Copy, Check, ImageOff, Download, Film, Images, Clock,
+  Eye, ChevronLeft, ChevronRight, Copy, Check, ImageOff, Download, Film, Images, Clock, List, CalendarRange,
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────
@@ -132,6 +133,7 @@ const AVANCES: Partial<Record<Estado, { a: Estado; label: string; mensaje: strin
 /* Modo pausa (experiencias en pausa, contenido/criterio/criterio.md): 6 de Notoriedad
    y 2 de Hacedores al mes. Cuando vuelvan las experiencias: 2 por pilar. */
 const MODO = "pausa";
+const POR_SEMANA = 2;
 const META_MES: Record<Pilar, number> = { xplorers: 0, hacedores: 2, empresas: 0, notoriedad: 6 };
 const ESTADOS_QUE_CUENTAN: Estado[] = [
   "producir", "borrador", "auditado", "pieza_propuesta", "aprobada", "publicada",
@@ -659,6 +661,7 @@ export default function AdminParrillaPage() {
   const [search, setSearch] = useState("");
   const [filtroFormato, setFiltroFormato] = useState<FiltroFormato>("todos");
   const [orden, setOrden] = useState<"recientes" | "fecha">("recientes");
+  const [vista, setVista] = useState<"lista" | "calendario">("lista");
   const [selected, setSelected] = useState<Partial<Pieza> | null>(null);
   const [visorId, setVisorId] = useState<string | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -701,6 +704,15 @@ export default function AdminParrillaPage() {
   }, [fetchParrilla, applyParrilla, supabase]);
 
   const showToast = (message: string, type: "ok" | "err") => setToast({ message, type });
+
+  /* Calendario: mover una pieza de día. Se ve al instante y se revierte si falla. */
+  async function moverFecha(id: string, fecha: string | null): Promise<boolean> {
+    const antes = items;
+    setItems((xs) => xs.map((x) => (x.id === id ? { ...x, fecha_programada: fecha } : x)));
+    const { error } = await supabase.from("contenido_piezas").update({ fecha_programada: fecha }).eq("id", id);
+    if (error) { setItems(antes); showToast(error.message, "err"); return false; }
+    return true;
+  }
 
   /* Sella las aprobaciones cuando una pieza cruza un punto de control */
   function conSellos(data: Partial<Pieza>, prev?: Estado): Partial<Pieza> {
@@ -797,7 +809,7 @@ export default function AdminParrillaPage() {
           <h1 className="font-outfit text-2xl font-black text-gray-900">Parrilla de contenido</h1>
           <p className="text-sm text-gray-400 mt-0.5 flex items-start gap-1.5">
             <Instagram size={13} className="mt-[3px] flex-shrink-0" />
-            <span>@comboxplora · 2 piezas por semana · modo {MODO}: 6 Notoriedad + 2 Hacedores al mes</span>
+            <span>@comboxplora · {POR_SEMANA} piezas por semana · modo {MODO}: 6 Notoriedad + 2 Hacedores al mes</span>
           </p>
         </div>
         <button
@@ -838,6 +850,26 @@ export default function AdminParrillaPage() {
         </p>
       </div>
 
+      {/* Vista: lista por estado o calendario para elegir el día de cada pieza */}
+      <div className="flex gap-1 p-1 bg-gray-100 rounded-2xl w-fit">
+        {([["lista", "Lista", List], ["calendario", "Calendario", CalendarRange]] as const).map(([v, label, Icono]) => (
+          <button key={v} onClick={() => setVista(v)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              vista === v ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"
+            }`}>
+            <Icono size={14} /> {label}
+          </button>
+        ))}
+      </div>
+
+      {vista === "calendario" ? (
+        isLoading ? (
+          <div className="flex justify-center py-20"><Loader2 size={28} className="animate-spin text-[#F4C430]" /></div>
+        ) : (
+          <CalendarioParrilla items={items} porSemana={POR_SEMANA} onMover={moverFecha} onVer={setVisorId} />
+        )
+      ) : (
+      <>
       {/* Pestañas */}
       <div className="flex gap-1.5 overflow-x-auto pb-1">
         {TABS.map((t) => {
@@ -1016,6 +1048,8 @@ export default function AdminParrillaPage() {
             );
           })}
         </div>
+      )}
+      </>
       )}
 
       <Visor

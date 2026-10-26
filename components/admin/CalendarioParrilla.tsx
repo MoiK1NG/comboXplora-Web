@@ -2,12 +2,15 @@
 
 import { useMemo, useState } from "react";
 import {
-  ChevronLeft, ChevronRight, Film, Images, Lock, Eye, CalendarX2, X, Undo2, AlertTriangle, Inbox,
+  ChevronLeft, ChevronRight, Film, Images, Lock, Eye, CalendarX2, X, Undo2, AlertTriangle, Inbox, Zap,
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────
-   Calendario de la parrilla: cada pieza es una tarjeta que se arrastra a un
-   día. En el teléfono (sin arrastre) se toca la tarjeta y después el día.
+   Calendario de la parrilla: cada pieza aprobada es una tarjeta que se arrastra
+   a un día. En el teléfono (sin arrastre) se toca la tarjeta y después el día.
+   Solo se mueven las aprobadas, y solo a los días en que corre el publicador
+   automático (contenido/estudio/publicador.md). Lo que falta aprobar se puede
+   mostrar, pero no se mueve.
 ───────────────────────────────────────────────────── */
 
 export interface PiezaCal {
@@ -28,6 +31,12 @@ interface Props {
 }
 
 const DIAS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"];
+
+/* Publicador automático: lunes y jueves a las 6:00 p. m. (Date.getDay: 1 y 4) */
+const DIAS_PUBLICA = [1, 4];
+const HORA_PUBLICA = "6:00 p. m.";
+const HORA_LIMITE = 21; // después de las 9:00 p. m. el publicador ya no publica ese día
+const visibleSiempre = (estado: string) => estado === "aprobada" || estado === "publicada";
 
 /* Borde izquierdo de la tarjeta según el estado: de un vistazo se ve qué falta aprobar */
 const ESTADO_BORDE: Record<string, string> = {
@@ -68,7 +77,7 @@ function semanasDelMes(anio: number, mes: number): Date[][] {
 export function CalendarioParrilla({ items, porSemana, onMover, onVer }: Props) {
   const hoy = iso(new Date());
   const [mes, setMes] = useState(() => { const d = new Date(); return { anio: d.getFullYear(), mes: d.getMonth() }; });
-  const [verIdeas, setVerIdeas] = useState(true);
+  const [verPendientes, setVerPendientes] = useState(false);
   const [arrastrando, setArrastrando] = useState<string | null>(null);
   const [sobre, setSobre] = useState<string | null>(null);
   const [elegida, setElegida] = useState<string | null>(null);
@@ -76,8 +85,8 @@ export function CalendarioParrilla({ items, porSemana, onMover, onVer }: Props) 
   const [aviso, setAviso] = useState<string | null>(null);
 
   const visibles = useMemo(
-    () => items.filter((i) => i.estado !== "descartada" && (verIdeas || i.estado !== "idea")),
-    [items, verIdeas],
+    () => items.filter((i) => i.estado !== "descartada" && (verPendientes || visibleSiempre(i.estado))),
+    [items, verPendientes],
   );
   const porDia = useMemo(() => {
     const m = new Map<string, PiezaCal[]>();
@@ -87,8 +96,9 @@ export function CalendarioParrilla({ items, porSemana, onMover, onVer }: Props) 
     }
     return m;
   }, [visibles]);
-  /* Sin fecha: lo que ya está en camino (no las ideas sueltas, que son muchas) */
+  /* Sin fecha: las aprobadas por programar (y, si se piden, las que van en camino; no las ideas sueltas) */
   const sinFecha = visibles.filter((i) => !i.fecha_programada && i.estado !== "idea" && i.estado !== "publicada");
+  const cuentan = (ps: PiezaCal[]) => ps.filter((p) => visibleSiempre(p.estado)).length;
   const semanas = semanasDelMes(mes.anio, mes.mes);
   const nombreMes = (() => {
     const s = new Date(mes.anio, mes.mes, 1).toLocaleDateString("es-CO", { month: "long", year: "numeric" });
@@ -99,7 +109,12 @@ export function CalendarioParrilla({ items, porSemana, onMover, onVer }: Props) 
   async function mover(id: string, fecha: string | null) {
     const p = pieza(id);
     if (!p || p.estado === "publicada") return;
+    if (p.estado !== "aprobada") { setAviso("Solo se programan las piezas aprobadas. Apruébala primero en la lista."); setElegida(null); return; }
     if (fecha && fecha < hoy) { setAviso("Ese día ya pasó. Elige uno de hoy en adelante."); return; }
+    if (fecha && !DIAS_PUBLICA.includes(desdeIso(fecha).getDay())) {
+      setAviso(`El publicador solo publica los lunes y jueves a las ${HORA_PUBLICA}. Elige uno de esos días.`); return;
+    }
+    if (fecha === hoy && new Date().getHours() >= HORA_LIMITE) { setAviso("Hoy ya pasó la hora de publicación. Elige otro lunes o jueves."); return; }
     const antes = p.fecha_programada?.slice(0, 10) ?? null;
     if (antes === fecha) return;
     if (await onMover(id, fecha)) { setUltimo({ id, antes, despues: fecha }); setAviso(null); }
@@ -112,19 +127,20 @@ export function CalendarioParrilla({ items, porSemana, onMover, onVer }: Props) 
 
   const tarjeta = (p: PiezaCal, compacta: boolean) => {
     const bloqueada = p.estado === "publicada";
+    const movible = p.estado === "aprobada";
     const reel = p.formato === "reel";
     const Icono = reel ? Film : Images;
     const portada = p.assets?.[0];
     return (
       <div
         key={p.id}
-        draggable={!bloqueada}
+        draggable={movible}
         onDragStart={(e) => { e.dataTransfer.setData("text/plain", p.id); e.dataTransfer.effectAllowed = "move"; setArrastrando(p.id); }}
         onDragEnd={() => { setArrastrando(null); setSobre(null); }}
-        onClick={(e) => { e.stopPropagation(); if (!bloqueada) setElegida(elegida === p.id ? null : p.id); else onVer(p.id); }}
-        title={`${p.titulo} · ${ESTADO_CORTO[p.estado] ?? p.estado}`}
+        onClick={(e) => { e.stopPropagation(); if (movible) setElegida(elegida === p.id ? null : p.id); else onVer(p.id); }}
+        title={`${p.titulo} · ${ESTADO_CORTO[p.estado] ?? p.estado}${movible ? ` · se publica sola a las ${HORA_PUBLICA}` : bloqueada ? "" : " · falta aprobarla para programarla"}`}
         className={`group flex items-center gap-1.5 bg-white rounded-lg border border-gray-200 border-l-4 ${ESTADO_BORDE[p.estado] ?? "border-l-gray-300"} p-1 shadow-sm text-left transition-all ${
-          bloqueada ? "opacity-60 cursor-pointer" : "cursor-grab active:cursor-grabbing hover:shadow-md"
+          movible ? "cursor-grab active:cursor-grabbing hover:shadow-md" : bloqueada ? "opacity-60 cursor-pointer" : "opacity-50 border-dashed cursor-pointer"
         } ${arrastrando === p.id ? "opacity-40" : ""} ${elegida === p.id ? "ring-2 ring-[#F4C430]" : ""} ${p.estado === "idea" ? "border-dashed bg-gray-50" : ""}`}
       >
         <div className="relative flex-shrink-0 w-7 h-9 rounded overflow-hidden bg-gray-100">
@@ -142,6 +158,7 @@ export function CalendarioParrilla({ items, porSemana, onMover, onVer }: Props) 
           {p.titulo}
         </span>
         {bloqueada && <Lock size={10} className="flex-shrink-0 text-gray-400" />}
+        {movible && <Zap size={10} className="flex-shrink-0 text-emerald-500 fill-emerald-500" />}
       </div>
     );
   };
@@ -167,15 +184,16 @@ export function CalendarioParrilla({ items, porSemana, onMover, onVer }: Props) 
             className="ml-1 px-3 py-2 rounded-xl text-xs font-bold text-gray-500 hover:bg-gray-100">Hoy</button>
         </div>
         <label className="flex items-center gap-2 text-xs font-bold text-gray-500 cursor-pointer select-none">
-          <input type="checkbox" checked={verIdeas} onChange={(e) => setVerIdeas(e.target.checked)} className="accent-[#F4C430]" />
-          Mostrar ideas
+          <input type="checkbox" checked={verPendientes} onChange={(e) => setVerPendientes(e.target.checked)} className="accent-[#F4C430]" />
+          Mostrar lo que falta aprobar
         </label>
       </div>
 
       {/* Leyenda */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-500">
-        <span className="font-bold">Arrastra una tarjeta a otro día{" "}<span className="font-normal">(en el teléfono: tócala y después toca el día)</span></span>
-        {[["border-l-orange-500", "Por aprobar"], ["border-l-emerald-500", "Aprobada"], ["border-l-blue-400", "En producción"], ["border-l-gray-300", "Idea"], ["border-l-gray-900", "Publicada"]].map(([c, l]) => (
+        <span className="font-bold">Arrastra una pieza aprobada a un lunes o jueves{" "}<span className="font-normal">(en el teléfono: tócala y después toca el día). Sale sola a las {HORA_PUBLICA}.</span></span>
+        {[["border-l-emerald-500", "Aprobada"], ["border-l-gray-900", "Publicada"],
+          ...(verPendientes ? [["border-l-orange-500", "Por aprobar"], ["border-l-blue-400", "En producción"], ["border-l-gray-300", "Idea"]] : [])].map(([c, l]) => (
           <span key={l} className="flex items-center gap-1.5"><span className={`w-3 h-3 rounded-sm bg-white border border-gray-200 border-l-4 ${c}`} />{l}</span>
         ))}
       </div>
@@ -219,7 +237,7 @@ export function CalendarioParrilla({ items, porSemana, onMover, onVer }: Props) 
         }`}>
         <p className="flex items-center gap-1.5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
           <Inbox size={12} /> Sin fecha · {sinFecha.length}
-          <span className="normal-case tracking-normal font-medium text-gray-400">· arrástralas a un día; suelta aquí una pieza para quitarle la fecha</span>
+          <span className="normal-case tracking-normal font-medium text-gray-400">· arrastra las aprobadas a un lunes o jueves; suelta aquí una pieza para quitarle la fecha</span>
         </p>
         {sinFecha.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">
@@ -233,31 +251,39 @@ export function CalendarioParrilla({ items, porSemana, onMover, onVer }: Props) 
         <div className="overflow-x-auto -mx-1 px-1">
           <div className="min-w-[680px] bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="grid grid-cols-[repeat(7,1fr)_44px] bg-gray-50 border-b border-gray-100">
-              {DIAS.map((d) => (
-                <div key={d} className="px-2 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">{d}</div>
-              ))}
+              {DIAS.map((d, i) => {
+                const publica = DIAS_PUBLICA.includes((i + 1) % 7);
+                return (
+                  <div key={d} className={`px-2 py-2 text-[10px] font-black uppercase tracking-widest ${publica ? "text-emerald-600" : "text-gray-400"}`}
+                    title={publica ? `El publicador corre a las ${HORA_PUBLICA}` : undefined}>
+                    {d}{publica && <span className="ml-1 normal-case tracking-normal"><Zap size={9} className="inline -mt-0.5 fill-emerald-500" /> 6 p. m.</span>}
+                  </div>
+                );
+              })}
               <div className="px-1 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center" title="Piezas en la semana">Sem</div>
             </div>
             {semanas.map((semana) => {
-              const enSemana = semana.reduce((n, d) => n + (porDia.get(iso(d))?.filter((p) => p.estado !== "idea").length ?? 0), 0);
+              const enSemana = semana.reduce((n, d) => n + cuentan(porDia.get(iso(d)) ?? []), 0);
               return (
                 <div key={iso(semana[0])} className="grid grid-cols-[repeat(7,1fr)_44px] border-b border-gray-100 last:border-b-0">
                   {semana.map((d) => {
                     const k = iso(d);
                     const delMes = d.getMonth() === mes.mes;
                     const piezas = porDia.get(k) ?? [];
-                    const cruce = piezas.filter((p) => p.estado !== "idea").length > 1;
+                    const cruce = cuentan(piezas) > 1;
                     const pasado = k < hoy;
+                    const publica = DIAS_PUBLICA.includes(d.getDay());
+                    const fuera = pasado || !publica;
                     return (
                       <div key={k} {...zona(k, k)}
                         className={`min-h-[112px] p-1.5 border-r border-gray-100 flex flex-col gap-1 transition-colors ${
-                          sobre === k ? (pasado ? "bg-red-50" : "bg-amber-50 ring-2 ring-inset ring-[#F4C430]") : delMes ? "bg-white" : "bg-gray-50/60"
-                        } ${elegida && !pasado ? "cursor-pointer hover:bg-amber-50" : ""}`}>
+                          sobre === k ? (fuera ? "bg-red-50" : "bg-amber-50 ring-2 ring-inset ring-[#F4C430]") : !delMes ? "bg-gray-50/60" : publica ? "bg-emerald-50/40" : "bg-white"
+                        } ${elegida && !fuera ? "cursor-pointer hover:bg-amber-50" : ""}`}>
                         <div className="flex items-center justify-between">
                           <span className={`text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full ${
                             k === hoy ? "bg-[#F4C430] text-gray-900" : delMes ? (pasado ? "text-gray-300" : "text-gray-700") : "text-gray-300"
                           }`}>{d.getDate()}</span>
-                          {cruce && <span title="Dos piezas el mismo día" className="text-[9px] font-black text-red-600 bg-red-50 px-1.5 rounded">×{piezas.filter((p) => p.estado !== "idea").length}</span>}
+                          {cruce && <span title="Dos piezas el mismo día" className="text-[9px] font-black text-red-600 bg-red-50 px-1.5 rounded">×{cuentan(piezas)}</span>}
                         </div>
                         {piezas.map((p) => tarjeta(p, true))}
                       </div>
@@ -265,7 +291,7 @@ export function CalendarioParrilla({ items, porSemana, onMover, onVer }: Props) 
                   })}
                   <div className={`flex items-center justify-center text-[11px] font-black ${
                     enSemana > porSemana ? "text-red-600 bg-red-50" : enSemana === porSemana ? "text-emerald-600 bg-emerald-50" : "text-gray-400"
-                  }`} title={`${enSemana} piezas (sin contar ideas); el ritmo es ${porSemana} por semana`}>
+                  }`} title={`${enSemana} piezas aprobadas o publicadas; el ritmo es ${porSemana} por semana`}>
                     {enSemana}/{porSemana}
                   </div>
                 </div>

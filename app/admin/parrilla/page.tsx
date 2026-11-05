@@ -5,6 +5,7 @@ import { createClient } from "../../../lib/supabase-client";
 import { Toast } from "../../../components/admin/Toast";
 import { ConfirmDialog } from "../../../components/admin/ConfirmDialog";
 import { CalendarioParrilla } from "../../../components/admin/CalendarioParrilla";
+import { PublicadorModo } from "../../../components/admin/PublicadorModo";
 import {
   Plus, X, Save, Loader2, Search, CalendarDays, CheckCircle2, Undo2,
   Trash2, Edit2, ExternalLink, Sparkles, Ban, Send, Instagram, ArrowRight,
@@ -829,6 +830,8 @@ export default function AdminParrillaPage() {
           </p>
         </div>
       )}
+
+      <PublicadorModo supabase={supabase} userEmail={userEmail} />
 
       {/* Balance del mes */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">

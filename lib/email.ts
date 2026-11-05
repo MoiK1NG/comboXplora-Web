@@ -244,3 +244,31 @@ export async function sendEmpresaNotification(data: {
     html: emailWrapper(content),
   });
 }
+
+// ──────────────────────────────────────────────
+// PUBLICADOR AUTOMÁTICO DE INSTAGRAM
+// ──────────────────────────────────────────────
+
+export async function sendPublicadorAviso(data: {
+  asunto: string;
+  lineas: string[];
+}) {
+  const content = `
+    <h2 style="margin:0 0 16px;font-size:20px;color:#111827;">Publicador de @comboxplora</h2>
+    <ul style="margin:0;padding-left:20px;color:#374151;font-size:14px;line-height:1.8;">
+      ${data.lineas.map((l) => `<li>${l}</li>`).join('')}
+    </ul>
+    <div style="margin-top:24px;">
+      <a href="https://combo-xplora-web.vercel.app/admin/parrilla" style="display:inline-block;background:#F4C430;color:#111827;font-weight:700;font-size:13px;padding:12px 24px;border-radius:8px;text-decoration:none;">
+        Abrir la parrilla
+      </a>
+    </div>
+  `;
+
+  return getResend().emails.send({
+    from: FROM_EMAIL,
+    to: ADMIN_EMAIL,
+    subject: `[${APP_NAME}] ${data.asunto}`,
+    html: emailWrapper(content),
+  });
+}

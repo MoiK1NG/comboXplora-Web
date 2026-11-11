@@ -23,22 +23,29 @@ export async function POST(request: Request) {
 
     // Guardar en Supabase (usando service role key para bypass RLS en escritura pública)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Service role si existe; si no, la anon key (la tabla permite INSERT público)
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (supabaseUrl && serviceKey) {
-      const supabase = createClient(supabaseUrl, serviceKey);
-      const { error: dbError } = await supabase
-        .from('formularios_contacto')
-        .insert({ name: name.trim(), email: email.trim(), phone, subject, message: message.trim() });
-
-      if (dbError) {
-        console.error('[contact API] Supabase error:', dbError.message);
-      }
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('[contact API] Supabase env vars missing');
+      return NextResponse.json({ error: 'Configuración del servidor incompleta.' }, { status: 500 });
     }
 
-    // Enviar email de notificación
+    const clean = (s?: string | null) => (s && s.trim() ? s.trim() : null);
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { error: dbError } = await supabase
+      .from('formularios_contacto')
+      .insert({ name: name.trim(), email: email.trim().toLowerCase(), phone: clean(phone), subject: clean(subject), message: message.trim() });
+
+    if (dbError) {
+      console.error('[contact API] Supabase error:', dbError.message, dbError.code);
+      return NextResponse.json({ error: 'No se pudo enviar el mensaje. Inténtalo de nuevo o escríbenos por WhatsApp.' }, { status: 500 });
+    }
+
+    // El correo no debe frenar la respuesta ni hacerla fallar
     if (process.env.RESEND_API_KEY) {
-      await sendContactNotification({ name, email, phone, subject, message });
+      sendContactNotification({ name, email, phone, subject, message })
+        .catch((err) => console.error('[contact API] Email error:', err));
     }
 
     return NextResponse.json({ success: true });

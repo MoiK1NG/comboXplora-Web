@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { Experience, AudioPoint, MapItem, EventoRow } from './types';
+import { Experience, AudioPoint, MapItem, EventoRow, Relato } from './types';
 import { experiences as staticExperiences, audioPoints as staticAudioPoints } from './map-data';
 import staticHacedores from '../data/hacedores.json';
 import staticMapItems from '../data/mapa-cultural.json';
@@ -278,6 +278,68 @@ export async function fetchEventBySlug(slug: string): Promise<MapItem | null> {
     return data ? mapEventoPublicoRow(data as EventoPublicoRow) : null;
   } catch (err) {
     console.warn(`No se pudo cargar el evento [${slug}].`, err);
+    return null;
+  }
+}
+
+// ── Relatos ─────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapRelatoRow = (row: any): Relato => ({
+  id: row.id,
+  title: row.title,
+  slug: row.slug,
+  excerpt: row.excerpt || '',
+  content: row.content || '',
+  author: row.author || '',
+  narrator: row.narrator || '',
+  categories: Array.isArray(row.categories) ? row.categories : [],
+  neighborhood: row.neighborhood || '',
+  lat: row.coordinates?.lat != null ? Number(row.coordinates.lat) : undefined,
+  lng: row.coordinates?.lng != null ? Number(row.coordinates.lng) : undefined,
+  coverImage: row.cover_image || '',
+  gallery: Array.isArray(row.gallery) ? row.gallery : [],
+  audioUrl: row.audio_url || '',
+  videoUrl: row.video_url || '',
+  type: row.type || 'escrito',
+  tags: Array.isArray(row.tags) ? row.tags : [],
+  linkedHacedorId: row.linked_hacedor_id || undefined,
+  showOnMap: !!row.show_on_map,
+  isFeatured: !!row.is_featured,
+  isActive: row.is_active !== false,
+  createdAt: row.created_at,
+});
+
+/** Relatos activos, destacados primero. Sin relatos o sin conexión devuelve lista vacía. */
+export async function fetchRelatos(): Promise<Relato[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data, error } = await supabase
+      .from('relatos')
+      .select('*')
+      .eq('is_active', true)
+      .order('is_featured', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(mapRelatoRow);
+  } catch (err) {
+    console.warn('No se pudieron cargar los relatos.', err);
+    return [];
+  }
+}
+
+export async function fetchRelatoBySlug(slug: string): Promise<Relato | null> {
+  if (!isSupabaseConfigured() || !slug) return null;
+  try {
+    const { data, error } = await supabase
+      .from('relatos')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? mapRelatoRow(data) : null;
+  } catch (err) {
+    console.warn(`No se pudo cargar el relato [${slug}].`, err);
     return null;
   }
 }

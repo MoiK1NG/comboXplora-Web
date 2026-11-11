@@ -50,6 +50,8 @@ export async function POST(req: Request) {
   revalidatePath("/experiencias/[slug]", "page");
   revalidatePath("/hacedores/[slug]", "page");
   revalidatePath("/eventos/[slug]", "page");
+  revalidatePath("/relatos/[slug]", "page");
+  revalidatePath("/sitemap.xml");
 
   return NextResponse.json({
     ok: true,

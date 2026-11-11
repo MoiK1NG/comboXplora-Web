@@ -52,6 +52,7 @@ export function Footer() {
                         <li><Link href="/mapa-cultural" className="hover:text-primary transition-colors">{T.footer.culturalMap[lang]}</Link></li>
                         <li><Link href="/eventos" className="hover:text-primary transition-colors">{T.footer.agenda[lang]}</Link></li>
                         <li><Link href="/hacedores" className="hover:text-primary transition-colors">{T.footer.makers[lang]}</Link></li>
+                        <li><Link href="/relatos" className="hover:text-primary transition-colors">{T.footer.stories[lang]}</Link></li>
                         <li><Link href="/empresas" className="hover:text-primary transition-colors">{T.footer.companies[lang]}</Link></li>
                         <li><Link href="/hacedores/unete" className="hover:text-primary transition-colors">{T.footer.joinMakers[lang]}</Link></li>
                         <li><Link href="/postula-tu-experiencia" className="hover:text-primary transition-colors">{T.footer.submit[lang]}</Link></li>
@@ -72,8 +73,11 @@ export function Footer() {
                 {/* Social & Contact */}
                 <div>
                     <h4 className="font-outfit font-black text-xl mb-6 text-gray-900 tracking-wide">{T.footer.connect[lang]}</h4>
-                    <p className="font-sans text-gray-600 mb-6 font-medium">
+                    <p className="font-sans text-gray-600 mb-2 font-medium">
                         comboxplora@gmail.com
+                    </p>
+                    <p className="mb-6">
+                        <Link href="/contacto" className="font-sans font-bold text-gray-900 underline underline-offset-4 hover:text-primary transition-colors">{T.footer.contact[lang]}</Link>
                     </p>
                     <div className="flex space-x-4">
                         <a

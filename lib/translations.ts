@@ -103,6 +103,8 @@ const T = {
     submit:       { es: "Registra tu evento",       en: "Register your event",     fr: "Inscrire un événement",   pt: "Registre seu evento" },
     joinMakers:   { es: "Únete como hacedor",       en: "Join as a maker",         fr: "Devenir artisan partenaire", pt: "Junte-se como fazedor" },
     companies:    { es: "Empresas",                 en: "Companies",               fr: "Entreprises",             pt: "Empresas" },
+    stories:      { es: "Relatos",                  en: "Stories",                 fr: "Récits",                  pt: "Relatos" },
+    contact:      { es: "Escríbenos",               en: "Contact us",              fr: "Nous écrire",             pt: "Fale conosco" },
     legal:        { es: "Legal",                    en: "Legal",                   fr: "Légal",                   pt: "Legal" },
     terms:        { es: "Términos y Condiciones",   en: "Terms and Conditions",    fr: "Conditions Générales",    pt: "Termos e Condições" },
     privacy:      { es: "Política de Privacidad",   en: "Privacy Policy",          fr: "Politique de Confidentialité", pt: "Política de Privacidade" },

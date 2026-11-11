@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SITE_URL } from "../lib/site";
+import { Analytics } from "@vercel/analytics/next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
@@ -37,6 +38,7 @@ export default function RootLayout({
         <LangProvider>
           {children}
         </LangProvider>
+        <Analytics />
       </body>
     </html>
   );

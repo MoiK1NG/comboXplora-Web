@@ -7,8 +7,7 @@ export default function GuiaQAPage() {
     return (
         <>
             <style>{`
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #fafaf8; }
+        .qa-wrap, .qa-wrap *, .qa-wrap *::before, .qa-wrap *::after { box-sizing: border-box; margin: 0; padding: 0; }
         .qa-wrap {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           background: #fafaf8;

@@ -10,7 +10,7 @@ import {
   Menu, X, ChevronRight, BookOpen, Building2,
   MessageSquare, ClipboardList, LogOut, User,
   Upload, Clock, CheckCircle2, ChevronDown as ChevronDownIcon, Loader2,
-  CalendarDays, Ticket,
+  CalendarDays, Ticket, FileText, LifeBuoy,
 } from "lucide-react";
 import { ChangesProvider, useChanges } from "./changes-context";
 
@@ -52,9 +52,21 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    title: "Comercial",
+    items: [
+      { href: "/admin/propuestas", label: "Propuestas", icon: <FileText size={17} /> },
+    ],
+  },
+  {
     title: "Marketing",
     items: [
       { href: "/admin/parrilla", label: "Parrilla de contenido", icon: <CalendarDays size={17} /> },
+    ],
+  },
+  {
+    title: "Ayuda",
+    items: [
+      { href: "/admin/guia-qa", label: "Guía de revisión", icon: <LifeBuoy size={17} /> },
     ],
   },
 ];
@@ -68,6 +80,8 @@ const SECTION_CRUMB_MAP: Record<string, string> = {
   contacto: "Contacto",
   postulaciones: "Postulaciones",
   eventos: "Eventos",
+  propuestas: "Propuestas",
+  "guia-qa": "Guía de revisión",
   parrilla: "Parrilla de contenido",
 };
 
@@ -130,7 +144,7 @@ function Sidebar({
       )}
 
       <aside className={`
-        fixed top-0 left-0 z-50 h-full w-64 bg-gray-950 flex flex-col transition-transform duration-300 ease-in-out
+        fixed top-0 left-0 z-50 h-full w-64 bg-gray-950 flex flex-col transition-transform duration-300 ease-in-out print:hidden
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0 lg:static lg:z-auto
       `}>
@@ -234,7 +248,7 @@ function TopBar({ onOpenMenu, onLogout }: { onOpenMenu: () => void; onLogout: ()
   const sectionLabel = SECTION_CRUMB_MAP[segment] ?? "";
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-5 py-3.5 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-5 py-3.5 flex items-center justify-between gap-4 print:hidden">
       <div className="flex items-center gap-3">
         <button onClick={onOpenMenu} className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
           <Menu size={19} />
@@ -351,7 +365,7 @@ function PublishBar() {
       )}
 
       {/* Floating bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-[200] flex items-center justify-between gap-4 bg-gray-950 text-white px-5 py-4 shadow-2xl border-t border-white/5">
+      <div className="fixed bottom-0 left-0 right-0 z-[200] flex items-center justify-between gap-4 bg-gray-950 text-white px-5 py-4 shadow-2xl border-t border-white/5 print:hidden">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-2 h-2 rounded-full bg-[#F4C430] animate-pulse flex-shrink-0" />
           <p className="text-sm font-semibold truncate">
@@ -426,16 +440,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <ChangesProvider>
-      <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">
+      <div className="flex h-screen overflow-hidden bg-gray-50 font-sans print:block print:h-auto print:overflow-visible print:bg-white">
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           userEmail={userEmail}
           onLogout={handleLogout}
         />
-        <div className="flex-1 flex flex-col min-w-0 overflow-auto pb-16">
+        <div className="flex-1 flex flex-col min-w-0 overflow-auto pb-16 print:block print:overflow-visible print:pb-0">
           <TopBar onOpenMenu={() => setSidebarOpen(true)} onLogout={handleLogout} />
-          <main className="flex-1 p-5 lg:p-7 max-w-full">
+          <main className="flex-1 p-5 lg:p-7 max-w-full print:p-0">
             {children}
           </main>
         </div>

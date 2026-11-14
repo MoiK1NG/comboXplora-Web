@@ -10,6 +10,7 @@ import {
   Plus, X, Save, Loader2, Search, CalendarDays, CheckCircle2, Undo2,
   Trash2, Edit2, ExternalLink, Sparkles, Ban, Send, Instagram, ArrowRight,
   Eye, ChevronLeft, ChevronRight, Copy, Check, ImageOff, Download, Film, Images, Clock, List, CalendarRange,
+  Circle, CircleDot, AlertTriangle, RotateCcw,
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────
@@ -112,22 +113,131 @@ function haceCuanto(iso: string): string {
   return dias < 7 ? `hace ${dias} ${dias === 1 ? "día" : "días"}` : fechaCorta(iso);
 }
 
-/* Pestañas: agrupan estados según lo que Moisés tiene que hacer */
-const TABS: { key: string; label: string; estados: Estado[] }[] = [
-  { key: "aprobar",    label: "Por aprobar",   estados: ["tema_propuesto", "pieza_propuesta"] },
-  { key: "ideas",      label: "Ideas",         estados: ["idea"] },
-  { key: "produccion", label: "En producción", estados: ["producir", "borrador", "auditado"] },
-  { key: "listas",     label: "Listas",        estados: ["aprobada"] },
-  { key: "publicadas", label: "Publicadas",    estados: ["publicada"] },
-  { key: "descartadas",label: "Descartadas",   estados: ["descartada"] },
+/* Recorrido de una pieza, en orden. "tuya": la etapa espera una aprobación de Moisés.
+   Las descartadas quedan fuera del recorrido (enlace aparte). */
+const ETAPAS: { key: string; label: string; estados: Estado[]; tuya?: boolean }[] = [
+  { key: "ideas",       label: "Ideas",              estados: ["idea"] },
+  { key: "temas",       label: "Temas por aprobar",  estados: ["tema_propuesto"], tuya: true },
+  { key: "produccion",  label: "En producción",      estados: ["producir", "borrador", "auditado"] },
+  { key: "piezas",      label: "Piezas por aprobar", estados: ["pieza_propuesta"], tuya: true },
+  { key: "programadas", label: "Programadas",        estados: ["aprobada"] },
+  { key: "publicadas",  label: "Publicadas",         estados: ["publicada"] },
 ];
+const DESCARTADAS = { key: "descartadas", label: "Descartadas", estados: ["descartada"] as Estado[] };
+
+/* El publicador sale lunes y jueves a las 6:00 p. m. (Date.getDay: 1 y 4) */
+const DIAS_PUBLICA = [1, 4];
+const HORA_PUBLICA = "6:00 p. m.";
+
+function fechaLocal(iso: string): Date {
+  const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+function hoyIso(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+/* "lun 16 nov" */
+function fechaConDia(iso: string): string {
+  return fechaLocal(iso).toLocaleDateString("es-CO", { weekday: "short", day: "numeric", month: "short" }).replace(/[.,]/g, "");
+}
+/* Sello de aprobación o publicación (timestamp) → "10 nov" en hora local */
+function fechaSello(iso: string): string {
+  return new Date(iso).toLocaleDateString("es-CO", { day: "numeric", month: "short" }).replace(/\./g, "");
+}
+
+/* Lo que impide que una pieza salga sola en su fecha */
+function avisoFecha(i: Pieza): string | null {
+  if (i.estado === "publicada" || i.estado === "descartada" || i.estado === "idea") return null;
+  if (!i.fecha_programada) {
+    return i.estado === "aprobada" ? "Está aprobada pero no tiene fecha: no sale hasta ponerle un lunes o jueves en el calendario." : null;
+  }
+  if (!DIAS_PUBLICA.includes(fechaLocal(i.fecha_programada).getDay())) {
+    return `El ${fechaConDia(i.fecha_programada)} no es lunes ni jueves: ese día el publicador no corre.`;
+  }
+  if (i.fecha_programada < hoyIso()) {
+    return `Su fecha (${fechaConDia(i.fecha_programada)}) ya pasó: hay que elegir otro lunes o jueves.`;
+  }
+  return null;
+}
+
+/* De quién es el turno, en una frase */
+function turnoDe(i: Pieza): { texto: string; tuyo: boolean } {
+  switch (i.estado) {
+    case "idea":            return { texto: "Idea guardada. Todavía no está propuesta como tema.", tuyo: false };
+    case "tema_propuesto":  return { texto: "Te toca aprobar el tema.", tuyo: true };
+    case "producir":        return { texto: "No te toca nada: Claude la está produciendo.", tuyo: false };
+    case "borrador":        return { texto: "No te toca nada: falta la auditoría del editor jefe.", tuyo: false };
+    case "auditado":        return { texto: "No te toca nada: ya está auditada y falta proponértela.", tuyo: false };
+    case "pieza_propuesta": return { texto: "Te toca revisar y aprobar la publicación.", tuyo: true };
+    case "aprobada":
+      return i.fecha_programada && !avisoFecha(i)
+        ? { texto: `No te toca nada: sale sola el ${fechaConDia(i.fecha_programada)} a las ${HORA_PUBLICA}`, tuyo: false }
+        : { texto: "Está aprobada, pero así no va a salir sola.", tuyo: true };
+    case "publicada":       return { texto: i.publicada_at ? `Publicada el ${fechaSello(i.publicada_at)}.` : "Publicada.", tuyo: false };
+    default:                return { texto: "Descartada. Se puede recuperar.", tuyo: false };
+  }
+}
+
+/* Los cinco pasos de una pieza y en cuál está */
+const PASO_DE: Record<Estado, number> = {
+  idea: -1, tema_propuesto: 0, producir: 1, borrador: 1, auditado: 1,
+  pieza_propuesta: 2, aprobada: 3, publicada: 5, descartada: -1,
+};
+
+function pasosDe(i: Pieza): { texto: string; estado: "hecho" | "actual" | "falta" }[] {
+  const en = PASO_DE[i.estado];
+  const st = (n: number) => (en > n ? "hecho" : en === n ? "actual" : "falta") as "hecho" | "actual" | "falta";
+  const con = (base: string, sello: string | null) => (sello ? `${base} · ${fechaSello(sello)}` : base);
+  return [
+    { estado: st(0), texto: st(0) === "hecho" ? con("Tema aprobado", i.tema_aprobado_at) : st(0) === "actual" ? "Falta aprobar el tema" : "Tema" },
+    { estado: st(1), texto: st(1) === "hecho" ? "Producida y auditada"
+        : st(1) === "actual" ? (i.estado === "producir" ? "En producción" : i.estado === "borrador" ? "Borrador, falta auditar" : "Auditada, falta proponerla")
+        : "Producción" },
+    { estado: st(2), texto: st(2) === "hecho" ? con("Pieza aprobada", i.pieza_aprobada_at) : st(2) === "actual" ? "Falta tu aprobación" : "Tu aprobación" },
+    { estado: st(3), texto: st(3) === "actual" ? (i.fecha_programada ? `Programada · ${fechaConDia(i.fecha_programada)}` : "Aprobada, sin fecha") : "Programada" },
+    { estado: st(4), texto: st(4) === "hecho" ? con("Publicada", i.publicada_at) : "Publicada" },
+  ];
+}
+
+/* Línea de la pieza: qué se aprobó, cuándo, y en qué paso está */
+function LineaPieza({ item }: { item: Pieza }) {
+  if (item.estado === "descartada") return null;
+  const turno = turnoDe(item);
+  const aviso = avisoFecha(item);
+  return (
+    <div className="space-y-1.5">
+      <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px]">
+        {pasosDe(item).map((p, n) => (
+          <li key={n} className="flex items-center gap-1.5">
+            {n > 0 && <span aria-hidden className={`w-3 h-px ${p.estado === "falta" ? "bg-gray-200" : "bg-emerald-300"}`} />}
+            <span className={`inline-flex items-center gap-1 whitespace-nowrap ${
+              p.estado === "hecho" ? "text-emerald-700 font-bold"
+              : p.estado === "actual" ? "text-gray-900 font-black bg-[#F4C430]/30 px-2 py-0.5 rounded-full"
+              : "text-gray-400"
+            }`}>
+              {p.estado === "hecho" ? <Check size={11} /> : p.estado === "actual" ? <CircleDot size={11} /> : <Circle size={9} />}
+              {p.texto}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className={`text-xs ${turno.tuyo ? "font-bold text-gray-900" : "text-gray-500"}`}>{turno.texto}</p>
+      {aviso && (
+        <p className="flex items-start gap-1.5 text-xs font-bold text-red-700 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">
+          <AlertTriangle size={13} className="mt-px flex-shrink-0" /> {aviso}
+        </p>
+      )}
+    </div>
+  );
+}
 
 /* Avances dentro de producción: un paso por etapa, sin saltarse la auditoría */
 const AVANCES: Partial<Record<Estado, { a: Estado; label: string; mensaje: string }>> = {
   producir:  { a: "borrador",        label: "Borrador listo",           mensaje: "Pieza en borrador." },
   borrador:  { a: "auditado",        label: "Auditada sin bloqueantes", mensaje: "Pieza auditada." },
   auditado:  { a: "pieza_propuesta", label: "Proponer publicación",     mensaje: "Pieza propuesta. Queda por aprobar." },
-  aprobada:  { a: "publicada",       label: "Marcar publicada",         mensaje: "Pieza marcada como publicada." },
+  aprobada:  { a: "publicada",       label: "Ya la publiqué a mano",    mensaje: "Pieza marcada como publicada." },
 };
 
 /* Ritmo y mix vigentes (contenido/criterio/criterio.md) */
@@ -617,6 +727,12 @@ function Visor({
           </div>
 
           <div className="flex-1 lg:overflow-y-auto px-6 py-5 space-y-5">
+            {item.estado !== "descartada" && (
+              <section>
+                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">En qué va</h4>
+                <LineaPieza item={item} />
+              </section>
+            )}
             {bloque("Caption", item.caption,
               item.caption ? (
                 <button onClick={copiar} className="flex items-center gap-1 text-[11px] font-bold text-gray-500 hover:text-gray-900">
@@ -658,10 +774,12 @@ export default function AdminParrillaPage() {
   const [experiencias, setExperiencias] = useState<{ id: string; title: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [tab, setTab] = useState("aprobar");
+  /* null = todavía no eligió: se abre en lo que espera su aprobación */
+  const [tabElegida, setTab] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filtroFormato, setFiltroFormato] = useState<FiltroFormato>("todos");
-  const [orden, setOrden] = useState<"recientes" | "fecha">("recientes");
+  /* null = sin elegir: las programadas se ordenan por fecha de salida; el resto, lo último primero */
+  const [ordenElegido, setOrden] = useState<"recientes" | "fecha" | null>(null);
   const [vista, setVista] = useState<"lista" | "calendario">("lista");
   const [selected, setSelected] = useState<Partial<Pieza> | null>(null);
   const [visorId, setVisorId] = useState<string | null>(null);
@@ -730,6 +848,12 @@ export default function AdminParrillaPage() {
     if (data.estado === "publicada" && prev === "aprobada") {
       out.publicada_at = ahora;
     }
+    /* Quitar la aprobación o recuperar una descartada: el sello de la pieza se borra,
+       para que la línea no diga "Pieza aprobada" de algo que hay que volver a aprobar */
+    if (data.estado !== "aprobada" && (prev === "aprobada" || prev === "descartada")
+        && data.estado !== "publicada" && data.estado !== "descartada") {
+      out.pieza_aprobada_at = null;
+    }
     return out;
   }
 
@@ -781,7 +905,11 @@ export default function AdminParrillaPage() {
   }, [items]);
 
   const countFor = (estados: Estado[]) => items.filter((i) => estados.includes(i.estado)).length;
-  const tabActual = TABS.find((t) => t.key === tab) ?? TABS[0];
+  const tab = tabElegida
+    ?? (countFor(["pieza_propuesta"]) ? "piezas" : countFor(["tema_propuesto"]) ? "temas" : "programadas");
+  const tabActual = [...ETAPAS, DESCARTADAS].find((t) => t.key === tab) ?? ETAPAS[3];
+  const porAprobar = countFor(["tema_propuesto", "pieza_propuesta"]);
+  const orden = ordenElegido ?? (tab === "programadas" ? "fecha" : "recientes");
 
   const enTab = items
     .filter((i) => tabActual.estados.includes(i.estado))
@@ -873,27 +1001,42 @@ export default function AdminParrillaPage() {
         )
       ) : (
       <>
-      {/* Pestañas */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        {TABS.map((t) => {
-          const n = countFor(t.estados);
-          const active = t.key === tab;
-          const urgente = t.key === "aprobar" && n > 0;
-          return (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all ${
-                active ? "bg-gray-900 text-white" : "bg-white text-gray-500 border border-gray-100 hover:border-gray-300"
-              }`}
-            >
-              {t.label}
-              <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-                urgente ? "bg-[#F4C430] text-gray-900" : active ? "bg-white/15" : "bg-gray-100"
-              }`}>{n}</span>
-            </button>
-          );
-        })}
+      {/* Recorrido: las seis etapas en orden. En amarillo, las que esperan una aprobación. */}
+      <div>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {ETAPAS.map((t, n) => {
+            const cuenta = countFor(t.estados);
+            const active = t.key === tab;
+            const espera = !!t.tuya && cuenta > 0;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                aria-pressed={active}
+                className={`relative text-left rounded-2xl border px-3 py-3 transition-all ${
+                  active ? "border-gray-900 ring-2 ring-gray-900" : "border-gray-100 hover:border-gray-300"
+                } ${espera ? "bg-[#F4C430]" : "bg-white"}`}
+              >
+                <span className={`block font-outfit text-2xl font-black leading-none ${espera ? "text-gray-900" : cuenta ? "text-gray-900" : "text-gray-300"}`}>{cuenta}</span>
+                <span className={`block text-[11px] font-bold leading-tight mt-1.5 ${espera ? "text-gray-900" : "text-gray-500"}`}>{t.label}</span>
+                {n < ETAPAS.length - 1 && (
+                  <ChevronRight size={12} aria-hidden className="hidden sm:block absolute -right-[11px] top-1/2 -translate-y-1/2 text-gray-300 z-10" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-between flex-wrap gap-2 mt-2.5">
+          <p className="text-xs text-gray-500">
+            {porAprobar > 0 ? (
+              <><span className="inline-block w-2.5 h-2.5 rounded-sm bg-[#F4C430] mr-1.5 align-[-1px]" />En amarillo, lo que espera tu aprobación: <b className="text-gray-900">{porAprobar}</b>. El resto avanza sin ti.</>
+            ) : "No hay nada esperando tu aprobación."}
+          </p>
+          <button onClick={() => setTab(DESCARTADAS.key)}
+            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${tab === DESCARTADAS.key ? "bg-gray-900 text-white" : "text-gray-400 hover:bg-gray-100 hover:text-gray-700"}`}>
+            Descartadas ({countFor(DESCARTADAS.estados)})
+          </button>
+        </div>
       </div>
 
       {/* Buscador */}
@@ -936,9 +1079,19 @@ export default function AdminParrillaPage() {
         </div>
       </div>
 
-      {tab === "listas" && filtered.length > 0 && (
-        <p className="text-xs text-gray-500 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
-          Estas piezas están aprobadas. Claude solo publica en Instagram piezas en estado Aprobada, y después las mueve a Publicadas con su enlace.
+      {tab === "programadas" && filtered.length > 0 && (
+        <p className="text-xs text-gray-600 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
+          Ya las aprobaste. El publicador sube cada una el lunes o jueves de su fecha, a las {HORA_PUBLICA}, y la pasa a Publicadas con su enlace. Si te arrepientes, usa &quot;Quitar aprobación&quot;.
+        </p>
+      )}
+      {tab === "piezas" && filtered.length > 0 && (
+        <p className="text-xs text-gray-600 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+          Estas piezas ya están producidas y auditadas. Su tema lo aprobaste antes; ahora falta tu segunda aprobación, la de la publicación terminada.
+        </p>
+      )}
+      {tab === "temas" && filtered.length > 0 && (
+        <p className="text-xs text-gray-600 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+          Son solo temas: todavía no hay pieza. Si apruebas uno, pasa a producción y vuelve a ti cuando esté terminado.
         </p>
       )}
 
@@ -951,7 +1104,7 @@ export default function AdminParrillaPage() {
         <div className="text-center py-20 text-gray-400">
           <Sparkles size={40} className="mx-auto mb-3 text-gray-200" />
           <p className="font-medium">
-            {tab === "aprobar" ? "No hay nada esperando tu aprobación." : "No hay piezas en esta pestaña."}
+            {tabActual.key === "temas" || tabActual.key === "piezas" ? "No hay nada esperando tu aprobación aquí." : "No hay piezas en esta etapa."}
           </p>
         </div>
       ) : (
@@ -1013,6 +1166,7 @@ export default function AdminParrillaPage() {
                       {hacedor && <span>· {hacedor}</span>}
                       {item.origen !== "manual" && <span>· vía {item.origen}</span>}
                     </div>
+                    <div className="mt-2.5"><LineaPieza item={item} /></div>
                     {(item.estado === "pieza_propuesta" ? item.caption : item.motivo) && (
                       <p className="text-xs text-gray-500 leading-relaxed mt-2 line-clamp-3 whitespace-pre-line">
                         {item.estado === "pieza_propuesta" ? item.caption : item.motivo}
@@ -1044,7 +1198,7 @@ export default function AdminParrillaPage() {
                 </div>
 
                 {/* Puntos de aprobación y avances rápidos */}
-                {item.estado !== "publicada" && item.estado !== "descartada" && (
+                {item.estado !== "publicada" && (
                   <div className="flex flex-wrap gap-2 px-5 pb-4">{accionesDe(item)}</div>
                 )}
               </div>
@@ -1059,7 +1213,7 @@ export default function AdminParrillaPage() {
         item={items.find((i) => i.id === visorId) ?? null}
         onClose={() => setVisorId(null)}
         onEdit={(p) => { setVisorId(null); setIsNew(false); setSelected(p); }}
-        acciones={(p) => (p.estado !== "publicada" && p.estado !== "descartada" ? accionesDe(p) : null)}
+        acciones={(p) => (p.estado !== "publicada" ? accionesDe(p) : null)}
       />
       <PiezaPanel
         item={selected}
@@ -1084,8 +1238,25 @@ export default function AdminParrillaPage() {
 
   /* Botones de aprobación y avance según el estado (tarjeta y visor) */
   function accionesDe(item: Pieza) {
+    if (item.estado === "descartada") {
+      /* Vuelve al punto donde quedó, siempre antes de una aprobación: nunca queda aprobada sola */
+      const a: Estado = item.assets?.length || item.caption ? "pieza_propuesta" : item.tema_aprobado_at ? "producir" : "idea";
+      const donde = a === "pieza_propuesta" ? "Piezas por aprobar" : a === "producir" ? "En producción" : "Ideas";
+      return (
+        <button onClick={() => { cambiarEstado(item, a, `Pieza recuperada. Quedó en ${donde}.`); }}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 text-xs font-bold transition-all">
+          <RotateCcw size={14} /> Recuperar (vuelve a {donde})
+        </button>
+      );
+    }
     return (
       <>
+                    {item.estado === "aprobada" && (
+                      <button onClick={() => cambiarEstado(item, "pieza_propuesta", "Aprobación quitada. Volvió a Piezas por aprobar.")}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-bold transition-all">
+                        <Undo2 size={14} /> Quitar aprobación
+                      </button>
+                    )}
                     {item.estado === "tema_propuesto" && (
                       <>
                         <button onClick={() => cambiarEstado(item, "producir", "Tema aprobado. Pasa a producción.")}
